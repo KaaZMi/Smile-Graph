@@ -9,4 +9,6 @@ public class Main{
 		Fenetre fen = new Fenetre(controler, model); // Création de notre fenêtre avec le contrôleur en paramètre
 		controler.addView(fen);
 	}
+	
+	//THIS IS ONLY A TEST!
 }

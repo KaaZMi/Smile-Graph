@@ -33,7 +33,8 @@ import model.Model;
 
 @SuppressWarnings("serial")
 public class Fenetre extends JFrame implements Observer{
-
+	
+	//TEST TEST
 	private JMenuBar menu = null;
 	private JMenu fichier = null;
 	private JMenuItem ouvrirXML = null;
