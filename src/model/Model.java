@@ -2,7 +2,6 @@ package model;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,7 +24,6 @@ import org.xml.sax.SAXException;
 public class Model extends Observable {
 	
 	private Graph graph;
-	private ArrayList<String> stockedLines; //contient les lignes du fichier log en mémoire
 	
 	public Model() {
 		this.graph = new MultiGraph("embedded");
@@ -89,13 +87,49 @@ public class Model extends Observable {
 	}
 	
 	public void openLOG(String path) {
+		
+		LinkedHashMap<Integer, ArrayList<String>> events = new LinkedHashMap<Integer, ArrayList<String>>();
+		
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(path));
 			String line = null;
-			stockedLines = new ArrayList<String>();
 			
-			while ((line = br.readLine()) != null) {  
-				stockedLines.add(line);
+			int i = 0;
+			while ((line = br.readLine()) != null) {
+				
+				// suppression de la parenthèse finale inutile
+				line = line.substring(0, line.length()-1);
+				
+				System.out.println(line);
+				
+				// séparation de la ligne en parties : agents / type ( / contenu )
+				String[] parts = line.split(":");
+				
+				// séparation des agents
+				String[] agents = parts[0].trim().split("->");
+				
+				// définition et remplissage des valeurs de l'événement courant
+				ArrayList<String> values = new ArrayList<String>();
+				values.add(agents[0].trim()); // agent source
+				values.add(agents[1].trim()); // agent cible
+				values.add(parts[1].trim()); // type du message
+				if (parts.length > 2) {
+					values.add(parts[2].trim()); // contenu du message
+				}
+				
+				// ajout de l'évenement courant à la map
+				events.put(i, values);
+				
+				// DEV : vérification du stockage de l'événement
+				for (String value: events.get(i)) {
+				    System.out.println(value);
+				}
+				
+				// DEV : juste pour pas lire tout le fichier
+				i++;
+				if (i>100){
+					break;
+				}
 			}
 			
 			br.close();
