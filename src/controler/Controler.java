@@ -15,12 +15,8 @@ public class Controler {
 		this.model = mod;
 	}
 	
-	public void openLOG(String path) throws IOException {
-		
-		//ouvrir le fichier log et retourner la version stockée en mémoire
+	public void openLOG(String path) {
 		this.model.openLOG(path);
-		
-		
 	}
 
 	public void openXML(String path) {

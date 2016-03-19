@@ -44,6 +44,7 @@ public class Fenetre extends JFrame implements Observer{
 	private JMenu help = null;
 	private JMenuItem apropos = null;
 	private JPanel conteneur = new JPanel();
+	private JFileChooser fileChooser = null;
 
 	private Controler controler;
 	private Model model;
@@ -83,12 +84,11 @@ public class Fenetre extends JFrame implements Observer{
 
 		fichier = new JMenu("Fichier");
 		fichier.setMnemonic('f');
-		//fichier.addActionListener(this);
 
 		ouvrirXML = new JMenuItem("Ouvrir XML");
 		ouvrirXML.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent arg0){
-				JFileChooser fileChooser = new JFileChooser();
+				fileChooser = new JFileChooser();
 				if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
 					String path = fileChooser.getSelectedFile().getAbsolutePath();
 					controler.openXML(path);
@@ -100,23 +100,13 @@ public class Fenetre extends JFrame implements Observer{
 		//TODO: voir pourquoi le jfilechooser ne fonctionne pas ici
 		ouvrirLOG = new JMenuItem("Ouvrir scénario");
 		ouvrirLOG.addActionListener(new ActionListener(){
-			public void actionPerformed(ActionEvent arg1){
-				//conteneur.removeAll();
-				
-				//MISE A JOUR par CF 14/3/2016 à 23h40
-				JFileChooser fileChooser = new JFileChooser();
+			public void actionPerformed(ActionEvent arg0){
+				fileChooser = new JFileChooser();
 				if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-					
 					String path = fileChooser.getSelectedFile().getAbsolutePath();
-					try {
-						controler.openLOG(path);
-					} catch (IOException e) {
-						e.printStackTrace();
-					}	
+					controler.openLOG(path);
 				}
 				conteneur.revalidate();
-				//END UPDATE
-				
 			}	    	
 		});
 
@@ -210,7 +200,7 @@ public class Fenetre extends JFrame implements Observer{
 		// initialisation et affichage du graphe original dans la fenetre
 		if (this.graph.getEdgeCount() == 0) {
 			Graph g = this.model.getGraph();
-			Viewer viewer = new Viewer(g, Viewer.ThreadingModel.GRAPH_IN_GUI_THREAD);
+			Viewer viewer = new Viewer(g, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
 		    DefaultView view = (DefaultView) viewer.addDefaultView(false); // false indicates "no JFrame"
 		    //view.setPreferredSize(new Dimension(1400, 700));
 		    JSlider slider = new JSlider();

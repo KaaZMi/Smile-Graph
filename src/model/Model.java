@@ -87,6 +87,23 @@ public class Model extends Observable {
 		
 		addEdges(edges);
 	}
+	
+	public void openLOG(String path) {
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(path));
+			String line = null;
+			stockedLines = new ArrayList<String>();
+			
+			while ((line = br.readLine()) != null) {  
+				stockedLines.add(line);
+			}
+			
+			br.close();
+		}
+		catch (final IOException e) {
+			e.printStackTrace();
+		}
+	}
 
 	public void addEdges(LinkedHashMap<String, ArrayList<String>> edges) {
 		Iterator<String> iterator = edges.keySet().iterator();
@@ -108,29 +125,6 @@ public class Model extends Observable {
 	
 	public Graph getGraph() {
 		return graph;
-	}
-	
-	public void openLOG(String path) throws IOException{
-		
-		//lire le fichier log
-		BufferedReader br = new BufferedReader(new FileReader(path));
-		
-		String line = null;  
-		
-		//Stocker le log en mémoire
-		stockedLines = new ArrayList<String>();
-		
-		while ((line = br.readLine()) != null)  
-		{  
-		   //pour chaque ligne executer la commande appropriée
-			stockedLines.add(line);
-			
-		}
-		
-		//terminer la lecture du fichier et fermer br
-		br.close();
-		
-		
 	}
 
 }
