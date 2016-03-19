@@ -105,6 +105,24 @@ public class Model extends Observable {
 				// séparation de la ligne en parties : agents / type ( / contenu )
 				String[] parts = line.split(":");
 				
+				// TODO traiter les différents type de messages (couleur à donner, ...)
+				// TODO utiliser des regex, des Matcher, pour les cas (car par exemple "Message de"
+				//		est suivi d'un agent variable, ou par ex "Hypothese a tester" est suivi de "(ind x)"
+				switch(parts[1].trim()) {
+					case "Nouveaux exemples":
+						break;
+					case "Hypothese a tester":
+						break;
+					case "Hypothese SMA-consitante":
+						break;
+					case "Contre Exemples":
+						break;
+					case "Nouvelle Hypothese a tester":
+						break;
+					case "Message de":
+						break;
+				}
+				
 				// séparation des agents
 				String[] agents = parts[0].trim().split("->");
 				

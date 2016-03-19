@@ -1,7 +1,5 @@
 package controler;
 
-import java.io.IOException;
-
 import model.Model;
 import view.Fenetre;
 
