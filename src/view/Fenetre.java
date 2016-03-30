@@ -5,6 +5,9 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map.Entry;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -49,16 +52,12 @@ public class Fenetre extends JFrame implements Observer{
 	private Model model;
 	
 	private Graph graph = null;
+	private LinkedHashMap<Integer, ArrayList<String>> events = new LinkedHashMap<Integer, ArrayList<String>>();
 
 	public Fenetre(Controler controler, Model model){
 		this.controler = controler;
 		this.model = model;
-		
 		this.model.addObserver(this); // ajout de la fenêtre comme observer du modèle
-		this.graph = new MultiGraph("embedded");
-		this.graph.setStrict(false);
-		this.graph.setAutoCreate(true);
-		this.graph.addAttribute("ui.antialias");
 		
 		initFrame();
 		initMenuBar();
@@ -167,7 +166,26 @@ public class Fenetre extends JFrame implements Observer{
 		toolbar.add(playButton);
 		playButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				System.out.println("PLAY");
+				graph.addAttribute("ui.stylesheet", "edge.marked { fill-color: red; }");
+				for (Entry<Integer, ArrayList<String>> entry : events.entrySet()) {
+				    System.out.println(entry.getKey() + "/" + entry.getValue());
+				    String i = entry.getValue().get(1);
+				    String j = entry.getValue().get(2);
+				    String id = "";
+				    if (Integer.parseInt(i) < Integer.parseInt(j)) {
+						id = i+"-"+j+"-"+j+"-"+i;
+					}
+					else {
+						id = j+"-"+i+"-"+i+"-"+j;
+					}
+				    System.out.println(id);
+				    graph.getEdge(id).setAttribute("ui.class", "marked");
+				    try {
+						Thread.sleep(50);
+					} catch (InterruptedException e1) {
+						e1.printStackTrace();
+					}
+				}
 			}
 		});
 		
@@ -197,9 +215,9 @@ public class Fenetre extends JFrame implements Observer{
 	public void update(Observable obs, Object obj) {
 		
 		// initialisation et affichage du graphe original dans la fenetre
-		if (this.graph.getEdgeCount() == 0) {
-			Graph g = this.model.getGraph();
-			Viewer viewer = new Viewer(g, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
+		if (graph == null) {
+			graph = this.model.getGraph();
+			Viewer viewer = new Viewer(graph, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
 		    DefaultView view = (DefaultView) viewer.addDefaultView(false); // false indicates "no JFrame"
 		    //view.setPreferredSize(new Dimension(1400, 700));
 		    JSlider slider = new JSlider();
@@ -208,6 +226,11 @@ public class Fenetre extends JFrame implements Observer{
 		    viewer.enableAutoLayout();
 		    this.conteneur.add(view, BorderLayout.CENTER);
 		    this.conteneur.add(slider, BorderLayout.SOUTH);
+		}
+		
+		else {
+			events = model.getEvents();
+			System.out.println(events.size());
 		}
 		
 	}

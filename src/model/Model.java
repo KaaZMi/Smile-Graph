@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Observable;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -22,16 +24,17 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 public class Model extends Observable {
-	
+
 	private Graph graph;
-	
+	private LinkedHashMap<Integer, ArrayList<String>> events = new LinkedHashMap<Integer, ArrayList<String>>();
+
 	public Model() {
 		this.graph = new MultiGraph("embedded");
 		this.graph.setStrict(false);
 		this.graph.setAutoCreate(true);
 		this.graph.addAttribute("ui.antialias");
 	}
-	
+
 	public void openXML(String path) {
 		final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		//final ArrayList<String> arcs = new ArrayList<String>();
@@ -58,20 +61,36 @@ public class Model extends Observable {
 					else {
 						final Element arc = (Element) racineNoeuds.item(n);
 
-						// affichage de i et de j
-						System.out.println("\n*************ARC************");
-						System.out.println("i : " + arc.getAttribute("i"));
-						System.out.println("j : " + arc.getAttribute("j"));
-						
-						ArrayList<String> values = new ArrayList<String>();
-						values.add(arc.getAttribute("i"));
-						values.add(arc.getAttribute("j"));
 						// ID de l'arc avec tiret entre les sommets pour différencer par exemple
-					    // l'arc 11 à 2 et l'arc 1 à 12 (sans tiret, l'ID serait 112 pour les deux).
-						edges.put(arc.getAttribute("i")+"-"+arc.getAttribute("j"), values);
+						// l'arc 11 à 2 et l'arc 1 à 12 (sans tiret, l'ID serait 112 pour les deux).
+						String i = arc.getAttribute("i");
+						String j = arc.getAttribute("j");
+						String id = "";
+						
+						// convention de notation de l'ID : AB-BA avec A < B
+						if (Integer.parseInt(i) < Integer.parseInt(j)) {
+							id = i+"-"+j+"-"+j+"-"+i;
+						}
+						else {
+							id = j+"-"+i+"-"+i+"-"+j;
+						}
+						
+						this.graph.addEdge(id, i, j, false); // false = non orienté
+						
+						// affichage de l'id de l'arc
+						System.out.println("\n*************ARC************");
+						System.out.println(id);
 					}
 				}				
-			}			
+			}
+			
+			for (Node node : this.graph) {
+				node.addAttribute("ui.label", node.getId());
+			}
+
+			setChanged();
+			notifyObservers();
+			
 		}
 		catch (final ParserConfigurationException e) {
 			e.printStackTrace();
@@ -82,101 +101,118 @@ public class Model extends Observable {
 		catch (final IOException e) {
 			e.printStackTrace();
 		}
-		
-		addEdges(edges);
 	}
-	
+
 	public void openLOG(String path) {
-		
-		LinkedHashMap<Integer, ArrayList<String>> events = new LinkedHashMap<Integer, ArrayList<String>>();
-		
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(path));
 			String line = null;
 			
+			int loop = 0; // DEV
 			int i = 0;
-			while ((line = br.readLine()) != null) {
-				
-				// suppression de la parenthèse finale inutile
-				line = line.substring(0, line.length()-1);
-				
-				System.out.println(line);
-				
-				// séparation de la ligne en parties : agents / type ( / contenu )
-				String[] parts = line.split(":");
-				
-				// TODO traiter les différents type de messages (couleur à donner, ...)
-				// TODO utiliser des regex, des Matcher, pour les cas (car par exemple "Message de"
-				//		est suivi d'un agent variable, ou par ex "Hypothese a tester" est suivi de "(ind x)"
-				switch(parts[1].trim()) {
-					case "Nouveaux exemples":
+			String color = null;
+			boolean etudier_cette_ligne = false;
+
+			// tant qu'une ligne non vide est lisible
+			while (((line = br.readLine()) != null) && !("".equals(line))) {
+				// toute ligne sans parenthèse finale n'est pas à traiter
+				// DEV : on ne traite pas les lignes System
+				if ( line.substring(line.length()-1, line.length()).equals(")") && !line.contains("System") ) {
+					// suppression de la parenthèse finale inutile
+					line = line.substring(0, line.length()-1);
+
+					// séparation de la ligne en parties : agents / type ( / contenu )
+					String[] parts = line.split(":");
+
+					// TODO traiter les différents type de messages (couleur à donner, ...)
+					etudier_cette_ligne = false;
+					color = "black";
+					if (parts[1].contains("Nouveaux Exemples")) {
+						etudier_cette_ligne = true;
+						color = "red";
+					}
+					else if (parts[1].contains("Hypothese a tester")) {
+						etudier_cette_ligne = true;
+						color = "blue";
+					}
+					else if (parts[1].contains("Hypothese SMA-consistante")) {
+						etudier_cette_ligne = true;
+						color = "purple";
+					}
+					else if (parts[1].contains("Contre Exemples")) {
+						etudier_cette_ligne = true;
+						color = "yellow";
+					}
+					else if (parts[1].contains("Nouvelle Hypothese a tester")) {
+						etudier_cette_ligne = true;
+						color = "green";
+					}
+					else if (parts[1].contains("Message de")) {
+						etudier_cette_ligne = true;
+						color = "orange";
+					}
+					else {
+						// aucun des cas précédents n'est vérifié donc la ligne courante ne nous intéressent pas
+						etudier_cette_ligne = false;
+					}
+
+					if (etudier_cette_ligne) {
+						i++;
+						// séparation des agents
+						String[] agents = parts[0].trim().split("->");
+
+						// définition et remplissage des valeurs de l'événement courant
+						ArrayList<String> values = new ArrayList<String>();
+						
+						// couleur que prendra l'arc à son "exécution"
+						values.add(color);
+						
+						// agents en retirant "Ag"
+						values.add(agents[0].trim().replaceAll("[^\\d.]", "")); 
+						values.add(agents[1].trim().replaceAll("[^\\d.]", ""));
+						
+						values.add(parts[1].trim()); // type du message
+						if (parts.length > 2) {
+							values.add(parts[2].trim()); // contenu du message
+						}
+
+						// ajout de l'évenement courant à la map
+						this.events.put(i, values);
+
+						// DEV : vérification du stockage de l'événement
+						for (String value: this.events.get(i)) {
+						    System.out.print(value);
+						}
+						System.out.println("");
+					}
+
+					// DEV : juste pour pas lire tout le fichier
+					loop++;
+					if (loop>225){
 						break;
-					case "Hypothese a tester":
-						break;
-					case "Hypothese SMA-consitante":
-						break;
-					case "Contre Exemples":
-						break;
-					case "Nouvelle Hypothese a tester":
-						break;
-					case "Message de":
-						break;
-				}
-				
-				// séparation des agents
-				String[] agents = parts[0].trim().split("->");
-				
-				// définition et remplissage des valeurs de l'événement courant
-				ArrayList<String> values = new ArrayList<String>();
-				values.add(agents[0].trim()); // agent source
-				values.add(agents[1].trim()); // agent cible
-				values.add(parts[1].trim()); // type du message
-				if (parts.length > 2) {
-					values.add(parts[2].trim()); // contenu du message
-				}
-				
-				// ajout de l'évenement courant à la map
-				events.put(i, values);
-				
-				// DEV : vérification du stockage de l'événement
-				for (String value: events.get(i)) {
-				    System.out.println(value);
-				}
-				
-				// DEV : juste pour pas lire tout le fichier
-				i++;
-				if (i>100){
-					break;
+					}
 				}
 			}
-			
+
+			// DEV : vérification du filtrage effectué
+			//System.out.println(events.size());
+
 			br.close();
 		}
 		catch (final IOException e) {
 			e.printStackTrace();
 		}
-	}
-
-	public void addEdges(LinkedHashMap<String, ArrayList<String>> edges) {
-		Iterator<String> iterator = edges.keySet().iterator();
 		
-		while (iterator.hasNext()) {
-			String id = (String) iterator.next(); // key = id
-		    ArrayList<String> values = (ArrayList<String>) edges.get(id); // values = i et j
-		    
-		    this.graph.addEdge(id, values.get(0), values.get(1)); 
-		}
-		
-		for (Node node : this.graph) {
-	        node.addAttribute("ui.label", node.getId());
-	    }
-		
-	    setChanged();
+		setChanged();
 		notifyObservers();
 	}
-	
+
 	public Graph getGraph() {
 		return graph;
+	}
+	
+	public LinkedHashMap<Integer, ArrayList<String>> getEvents() {
+		return events;
 	}
 
 }
