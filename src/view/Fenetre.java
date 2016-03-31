@@ -2,6 +2,7 @@ package view;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -34,7 +35,7 @@ import controler.Controler;
 import model.Model;
 
 @SuppressWarnings("serial")
-public class Fenetre extends JFrame implements Observer{
+public class Fenetre extends JFrame implements Observer {
 	
 	//TEST TEST
 	private JMenuBar menu = null;
@@ -63,18 +64,18 @@ public class Fenetre extends JFrame implements Observer{
 		initMenuBar();
 		initToolBar();
 		
-		this.setVisible(true);
+		setVisible(true);
 	}
 
 	private void initFrame() {
-		this.setTitle("Smile Graph");
-		this.setSize(new Dimension(1600,900));
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		this.setLocationRelativeTo(null); // fenêtre centrée
-		this.setResizable(true);
-		this.conteneur.setBackground(Color.red); // temporaire
-		this.setContentPane(this.conteneur); // avertir notre JFrame que ce sera notre JPanel qui constituera son content pane
-		this.getContentPane().setLayout(new BorderLayout()); // choix du gestionnaire d'agencement
+		setTitle("Smile Graph");
+		setSize(new Dimension(1600,900));
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setLocationRelativeTo(null); // fenêtre centrée
+		setResizable(true);
+		conteneur.setBackground(Color.red); // temporaire
+		setContentPane(this.conteneur); // avertir notre JFrame que ce sera notre JPanel qui constituera son content pane
+		getContentPane().setLayout(new BorderLayout()); // choix du gestionnaire d'agencement
 	}
 	
 	private void initMenuBar() {
@@ -216,16 +217,27 @@ public class Fenetre extends JFrame implements Observer{
 		
 		// initialisation et affichage du graphe original dans la fenetre
 		if (graph == null) {
-			graph = this.model.getGraph();
+			graph = new MultiGraph("embedded");
+			graph.setStrict(false);
+			graph.setAutoCreate(true);
+			graph.addAttribute("ui.antialias");
+			LinkedHashMap<String, ArrayList<String>> edges = model.getEdges();
+			for (Entry<String, ArrayList<String>> entry : edges.entrySet()) {
+				graph.addEdge(entry.getKey(), entry.getValue().get(0), entry.getValue().get(1), false); // false = non orienté
+			}
+			for (Node node : graph) {
+				node.addAttribute("ui.label", node.getId());
+			}
 			Viewer viewer = new Viewer(graph, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
-		    DefaultView view = (DefaultView) viewer.addDefaultView(false); // false indicates "no JFrame"
-		    //view.setPreferredSize(new Dimension(1400, 700));
+			viewer.enableAutoLayout();
+		    ViewPanel view = viewer.addDefaultView(false); // false indicates "no JFrame"
+		    
+		    // TODO : MouseWheelListener pour le zoom
 		    JSlider slider = new JSlider();
 		    slider.addChangeListener(e -> view.getCamera().setViewPercent(slider.getValue() / 10.0));
 		    slider.setBackground(Color.white);
-		    viewer.enableAutoLayout();
-		    this.conteneur.add(view, BorderLayout.CENTER);
-		    this.conteneur.add(slider, BorderLayout.SOUTH);
+		    conteneur.add((Component) view, BorderLayout.CENTER);
+		    conteneur.add(slider, BorderLayout.SOUTH);
 		}
 		
 		else {
