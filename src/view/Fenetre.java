@@ -247,8 +247,8 @@ public class Fenetre extends JFrame implements Observer, ViewerListener {
 			// IMPORTANT !
 			// We connect back the viewer to the graph,
 			// the graph becomes a sink for the viewer.
-			// We also install us as a viewer listener to
-			// intercept the graphic events.
+			// We also install us as a viewer listener 
+			// to intercept the graphic events.
 			fromViewer = viewer.newViewerPipe();
 			fromViewer.addViewerListener(this);
 			fromViewer.addSink(graph);
