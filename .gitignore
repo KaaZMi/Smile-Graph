@@ -1,3 +1,13 @@
+# ignore all bin directories
+# matches "bin" in any subfolder
+bin/
+
+# ignore all target directories
+target/
+
+# ignore all files ending with ~
+*~
+
 *.class
 
 # Mobile Tools for Java (J2ME)
