@@ -21,6 +21,7 @@ public class Model extends Observable {
 
 	private LinkedHashMap<String, ArrayList<String>> edges = new LinkedHashMap<String, ArrayList<String>>();
 	private LinkedHashMap<Integer, ArrayList<String>> events = new LinkedHashMap<Integer, ArrayList<String>>();
+	private int cursor = 0; // current position of the scenario
 
 	public void openXML(String path) {
 		final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -141,7 +142,6 @@ public class Model extends Observable {
 					}
 
 					if (etudier_cette_ligne) {
-						i++;
 						// séparation des agents
 						String[] agents = parts[0].trim().split("->");
 
@@ -168,6 +168,8 @@ public class Model extends Observable {
 						    System.out.print(value);
 						}
 						System.out.println("");
+						
+						i++;
 					}
 
 					// DEV : juste pour pas lire tout le fichier
@@ -197,6 +199,14 @@ public class Model extends Observable {
 	
 	public LinkedHashMap<Integer, ArrayList<String>> getEvents() {
 		return events;
+	}
+
+	public int getCursor() {
+		return cursor;
+	}
+
+	public void setCursor(int cursor) {
+		this.cursor = cursor;
 	}
 
 }

@@ -170,14 +170,15 @@ public class Fenetre extends JFrame implements Observer, ViewerListener {
 				// scenario execution in a separate thread
 				new Thread() {
 					public void run() {
-						for (Entry<Integer, ArrayList<String>> entry : events.entrySet()) {
+						//for (Entry<Integer, ArrayList<String>> entry : events.entrySet()) {
+						for (int cursor = model.getCursor() ; cursor < model.getEvents().keySet().size() ; cursor++) {
 							// We need to call the pump() method before each use 
 							// of the graph to copy back events that have already 
 							// occurred in the viewer thread inside our thread.
 							fromViewer.pump();
-							System.out.println(entry.getKey() + "/" + entry.getValue());
-							String i = entry.getValue().get(1);
-							String j = entry.getValue().get(2);
+							System.out.println(cursor + "/" + model.getEvents().get(cursor));
+							String i = model.getEvents().get(cursor).get(1);
+							String j = model.getEvents().get(cursor).get(2);
 							String id = "";
 							if (Integer.parseInt(i) < Integer.parseInt(j)) {
 								id = i+"-"+j+"-"+j+"-"+i;
@@ -186,7 +187,8 @@ public class Fenetre extends JFrame implements Observer, ViewerListener {
 								id = j+"-"+i+"-"+i+"-"+j;
 							}
 							System.out.println(id);
-							graph.getEdge(id).setAttribute("ui.class", "marked");
+							graph.getEdge(id).setAttribute("ui.class", model.getEvents().get(cursor).get(0));
+							model.setCursor(cursor);
 							try {
 								Thread.sleep(1000);
 							} catch (InterruptedException e1) {
@@ -283,8 +285,23 @@ public class Fenetre extends JFrame implements Observer, ViewerListener {
 	// TODO : mettre au point le style (juste un test pour l'instant)
 	// TODO : il faudra mettre ça au propre dans un fichier peut-être
 	protected static String styleSheet =
-			"edge.marked {"+
+			"edge.red {"+
 			"	fill-color: red;"+
+			"}"+
+			"edge.blue {"+
+			"	fill-color: blue;"+
+			"}"+
+			"edge.purple {"+
+			"	fill-color: purple;"+
+			"}"+
+			"edge.yellow {"+
+			"	fill-color: yellow;"+
+			"}"+
+			"edge.green {"+
+			"	fill-color: green;"+
+			"}"+
+			"edge.orange {"+
+			"	fill-color: orange;"+
 			"}"
 	;
 
