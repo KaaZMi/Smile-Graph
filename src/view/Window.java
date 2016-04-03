@@ -27,6 +27,8 @@ import javax.swing.JToolBar;
 
 import org.graphstream.graph.*;
 import org.graphstream.graph.implementations.MultiGraph;
+import org.graphstream.ui.spriteManager.Sprite;
+import org.graphstream.ui.spriteManager.SpriteManager;
 import org.graphstream.ui.swingViewer.*;
 import org.graphstream.ui.view.Viewer;
 import org.graphstream.ui.view.ViewerListener;
@@ -60,6 +62,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	private Graph graph = null;
 	private LinkedHashMap<Integer, ArrayList<String>> events = new LinkedHashMap<Integer, ArrayList<String>>();
 	private Thread scenario_execution = null;
+	private SpriteManager sman = null;
 
 	public Window(Controler controler, Model model){
 		this.controler = controler;
@@ -120,6 +123,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 						graph.addAttribute("ui.antialias"); // graphics smoothing
 						graph.addAttribute("ui.quality");
 						graph.addAttribute("ui.stylesheet", styleSheet); // CSS style of the graph
+						sman = new SpriteManager(graph);
 	
 						LinkedHashMap<String, ArrayList<String>> edges = model.getEdges();
 						for (Entry<String, ArrayList<String>> entry : edges.entrySet()) {
@@ -275,6 +279,56 @@ public class Window extends JFrame implements Observer, ViewerListener {
 							System.out.println(id);
 							System.out.println("----------------");
 							graph.getEdge(id).setAttribute("ui.class", model.getEvents().get(cursor).get(0));
+							
+							Sprite s = null;
+							if(sman.getSprite("s_"+id) != null) {
+								s = sman.getSprite("s_"+id);
+							}
+							else {
+								s = sman.addSprite("s_"+id);
+								s.attachToEdge(id);
+							}
+							
+							if(s.hasAttribute("ui.hide")) {
+								s.removeAttribute("ui.hide");
+							}
+							
+							double start;
+							double end;
+							double increment;
+							if(i.equals(graph.getEdge(id).getNode0().getAttribute("ui.label"))) {
+								start = 0.0;
+								end = 1.0;
+								increment = 0.01;
+								while(start < end) {
+									s.setPosition(start);
+									start += increment;
+									try {
+										Thread.sleep(10);
+									} catch (InterruptedException e1) {
+										Thread.currentThread().interrupt();
+										break;
+									}
+								}
+							}
+							else {
+								start = 1.0;
+								end = 0.0;
+								increment = -0.01;
+								while(start > end) {
+									s.setPosition(start);
+									start += increment;
+									try {
+										Thread.sleep(10);
+									} catch (InterruptedException e1) {
+										Thread.currentThread().interrupt();
+										break;
+									}
+								}
+							}
+							
+							s.addAttribute("ui.hide");
+							
 							controler.incrementCursor();
 							try {
 								Thread.sleep(500); // speed of execution
@@ -400,6 +454,10 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			"}"+
 			"edge.orange {"+
 			"	fill-color: orange;"+
+			"}"+
+			"node {"+
+			"	text-alignment: under;"+
+			"	text-color: black;"+
 			"}"
 	;
 
