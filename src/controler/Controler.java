@@ -1,31 +1,49 @@
 package controler;
 
 import model.Model;
-import view.Fenetre;
+import view.Window;
 
 public class Controler {
 	
-	private Fenetre fen = null;
+	private Window view = null;
 	private Model model;
 	
 	
 	public Controler(Model mod){
 		this.model = mod;
 	}
-	
-	public void openLOG(String path) {
-		this.model.openLOG(path);
-	}
 
-	public void openXML(String path) {
+	public boolean openXML(String path) {
 		// ...
 		// TODO vérifier validité du chemin (est-ce que c'est bien un fichier xml, ...) 
 		// ...
-		this.model.openXML(path);
+		return model.openXML(path);
 	}
 	
-	public void addView(Fenetre fen) {
-		this.fen = fen ;
+	public boolean openLOG(String path) {
+		return model.openLOG(path);
+	}
+	
+	public void addView(Window view) {
+		this.view = view ;
+	}
+
+	public void incrementCursor() {
+		model.setCursor((model.getCursor()+1));
+		control();
+	}
+	
+	public void decrementCursor() {
+		model.setCursor((model.getCursor()-1));
+		control();
+	}
+
+	public void control() {
+		if ( view != null ) {
+			if ( model.getCursor() > model.getEvents().keySet().size()) {
+				// TODO : gérer affichage des erreurs dans la vue
+			}
+		}
 	}
 
 }

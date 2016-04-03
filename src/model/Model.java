@@ -22,8 +22,12 @@ public class Model extends Observable {
 	private LinkedHashMap<String, ArrayList<String>> edges = new LinkedHashMap<String, ArrayList<String>>();
 	private LinkedHashMap<Integer, ArrayList<String>> events = new LinkedHashMap<Integer, ArrayList<String>>();
 	private int cursor = 0; // current position of the scenario
+	
+	private boolean graphLoaded = false;
+	private boolean scenarioLoaded = false;
+	private int nbAgents = 0;
 
-	public void openXML(String path) {
+	public boolean openXML(String path) {
 		final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 
 		try {
@@ -42,7 +46,7 @@ public class Model extends Observable {
 				if(racineNoeuds.item(n).getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
 					if (racineNoeuds.item(n).getNodeName().equals("NbAgent")) {
 						final String nb_agents = ((Element) racineNoeuds.item(n)).getAttribute("n");
-						System.out.println("nb_agents : " + nb_agents);
+						setNbAgents(Integer.parseInt(nb_agents));
 					}
 					else {
 						final Element arc = (Element) racineNoeuds.item(n);
@@ -72,10 +76,6 @@ public class Model extends Observable {
 					}
 				}				
 			}
-
-			setChanged();
-			notifyObservers();
-			
 		}
 		catch (final ParserConfigurationException e) {
 			e.printStackTrace();
@@ -86,9 +86,14 @@ public class Model extends Observable {
 		catch (final IOException e) {
 			e.printStackTrace();
 		}
+		
+		setGraphLoaded(true);
+		setChanged();
+		notifyObservers();
+		return true;
 	}
 
-	public void openLOG(String path) {
+	public boolean openLOG(String path) {
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(path));
 			String line = null;
@@ -189,8 +194,10 @@ public class Model extends Observable {
 			e.printStackTrace();
 		}
 		
+		setScenarioLoaded(true);
 		setChanged();
 		notifyObservers();
+		return true;
 	}
 	
 	public LinkedHashMap<String, ArrayList<String>> getEdges() {
@@ -207,6 +214,30 @@ public class Model extends Observable {
 
 	public void setCursor(int cursor) {
 		this.cursor = cursor;
+	}
+
+	public boolean isGraphLoaded() {
+		return graphLoaded;
+	}
+
+	public void setGraphLoaded(boolean graphLoaded) {
+		this.graphLoaded = graphLoaded;
+	}
+
+	public boolean isScenarioLoaded() {
+		return scenarioLoaded;
+	}
+
+	public void setScenarioLoaded(boolean scenarioLoaded) {
+		this.scenarioLoaded = scenarioLoaded;
+	}
+
+	public int getNbAgents() {
+		return nbAgents;
+	}
+
+	public void setNbAgents(int nbAgents) {
+		this.nbAgents = nbAgents;
 	}
 
 }
