@@ -37,6 +37,11 @@ public class Controler {
 		model.setCursor((model.getCursor()-1));
 		control();
 	}
+	
+	public void resetCursor() {
+		model.setCursor(0);
+		control();
+	}
 
 	public void control() {
 		if ( view != null ) {

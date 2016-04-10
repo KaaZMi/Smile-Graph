@@ -134,7 +134,8 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	
 						LinkedHashMap<String, ArrayList<String>> edges = model.getEdges();
 						for (Entry<String, ArrayList<String>> entry : edges.entrySet()) {
-							graph.addEdge(entry.getKey(), entry.getValue().get(0), entry.getValue().get(1), false); // false = not oriented
+							// add an undirected edge
+							graph.addEdge(entry.getKey(), entry.getValue().get(0), entry.getValue().get(1), false);
 						}
 						for (Node node : graph) {
 							node.addAttribute("ui.label", node.getId());
@@ -143,6 +144,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 						viewer = new Viewer(graph, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
 						viewer.enableAutoLayout();
 						ViewPanel view_panel = viewer.addDefaultView(false); // false indicates "no JFrame"
+						// TODO : view_panel.addMouseWheelListener(new MyMouseListener());
 	
 						/* IMPORTANT !
 						 * We connect back the viewer to the graph,
@@ -240,31 +242,10 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		prevButton.setFocusPainted(false);
 		toolbar.add(prevButton);
 		prevButton.addActionListener(new ActionListener() {
-			// TODO : revenir en arrière est beaucoup plus complexe
+			// TODO : 	revenir en arrière est plus complexe et peut être 
+			// 			fait de différentes façons, questions à poser au prof.
 			public void actionPerformed(ActionEvent e) {
-				if(model.getCursor() > 0) {
-					controler.decrementCursor();
-					int cursor = model.getCursor();
-					/* We need to call the pump() method before each use 
-					 * of the graph to copy back events that have already 
-					 * occurred in the viewer thread inside our thread.
-					 */
-					fromViewer.pump();
-					String i = model.getEvents().get(cursor).get(1);
-					String j = model.getEvents().get(cursor).get(2);
-					String id = "";
-					if (Integer.parseInt(i) < Integer.parseInt(j)) {
-						id = i+"-"+j+"-"+j+"-"+i;
-					}
-					else {
-						id = j+"-"+i+"-"+i+"-"+j;
-					}
-					System.out.println("----------------");
-					System.out.println(cursor + "/" + model.getEvents().get(cursor));
-					System.out.println(id);
-					System.out.println("----------------");
-					graph.getEdge(id).setAttribute("ui.class", model.getEvents().get(cursor).get(0));
-				}
+				System.out.println("PREV");
 			}
 		});
 
@@ -482,8 +463,22 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		toolbar.add(stopButton);
 		stopButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				scenario_execution.interrupt(); // it interrupts the waiting thread and throws the exception InterruptedException
-				// TODO : reset du graphe
+				// it interrupts the waiting thread and throws the exception InterruptedException
+				scenario_execution.interrupt();
+				try {
+					// wait until the thread finishes
+					scenario_execution.join();
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				};
+				
+				// each sprite is removed
+				for(Sprite sprite: sman) {
+					sman.removeSprite(sprite.getId());
+				}
+				
+				currently_moving = false;
+				controler.resetCursor();
 			}
 		});
 
