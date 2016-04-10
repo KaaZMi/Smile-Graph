@@ -42,7 +42,7 @@ import model.Model;
 @SuppressWarnings("serial")
 public class Window extends JFrame implements Observer, ViewerListener {
 	private boolean loop = true;
-	protected ViewerPipe fromViewer = null;
+	private ViewerPipe fromViewer = null;
 
 	private JMenuBar menu = null;
 	private JMenu file = null;
@@ -65,6 +65,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	private LinkedHashMap<Integer, ArrayList<String>> events = new LinkedHashMap<Integer, ArrayList<String>>();
 	private Thread scenario_execution = null;
 	private SpriteManager sman = null;
+	private boolean scenario_reprise = false;
 
 	public Window(Controler controler, Model model){
 		this.controler = controler;
@@ -261,35 +262,50 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			public void actionPerformed(ActionEvent e) {
 				// scenario execution in a separate thread
 				scenario_execution = new Thread() {
-					public void run() {					
-						int cursor = model.getCursor();
-						String i = model.getEvents().get(cursor).get(1);
-						String j = model.getEvents().get(cursor).get(2);
-						String id = "";
+					public void run() {
+						int cursor = 0;
 						boolean direction = true;
 						double pos = 0;
+						String i = null;
+						String j = null;
+						String edge_id = null;
+						mySprite sprite = null;
 						
-						if (Integer.parseInt(i) < Integer.parseInt(j)) {
-							id = i+"-"+j+"-"+j+"-"+i;
+						if (!scenario_reprise) {
+							cursor = model.getCursor();
+							i = model.getEvents().get(cursor).get(1);
+							j = model.getEvents().get(cursor).get(2);
+							edge_id = getEdgebyNodes(i,j);
+							
+							if (Integer.parseInt(i) < Integer.parseInt(j)) {
+								direction = true;
+								pos = 0;
+							}
+							else {
+								direction = false;
+								pos = 1;
+							}
+							
+							System.out.println("----------------");
+							System.out.println(cursor + "/" + model.getEvents().get(cursor));
+							System.out.println(edge_id);
+							System.out.println("----------------");
+							
+							sprite = (mySprite) sman.addSprite("s_" + edge_id);
+							sprite.attachToEdge(edge_id);
+							sprite.setPosition(pos);
+							sprite.setDirection(direction);
+							sprite.addAttribute("ui.class", model.getEvents().get(cursor).get(0));
 						}
 						else {
-							id = j+"-"+i+"-"+i+"-"+j;
-							direction = false;
-							pos = 1;
+							cursor = model.getCursor();
+							i = model.getEvents().get(cursor).get(1);
+							j = model.getEvents().get(cursor).get(2);
+							edge_id = getEdgebyNodes(i,j);
+							
+							sprite = (mySprite) sman.getSprite("s_" + edge_id);
+							scenario_reprise = false;
 						}
-						
-						System.out.println("----------------");
-						System.out.println(cursor + "/" + model.getEvents().get(cursor));
-						System.out.println(id);
-						System.out.println("----------------");
-						
-						mySprite sprite = (mySprite) sman.addSprite("s_" + id);
-						sprite.attachToEdge(id);
-						sprite.setPosition(pos);
-						sprite.setStart(pos);
-						sprite.setEnd(Math.abs(pos-1));
-						sprite.setDirection(direction);
-						sprite.addAttribute("ui.class", model.getEvents().get(cursor).get(0));
 						
 						/*
 						 * Each loop processes a movement, not necessarily an event.
@@ -311,29 +327,25 @@ public class Window extends JFrame implements Observer, ViewerListener {
 								cursor = model.getCursor();
 								i = model.getEvents().get(cursor).get(1);
 								j = model.getEvents().get(cursor).get(2);
-								id = "";
-								direction = true;
-								pos = 0;
+								edge_id = getEdgebyNodes(i,j);
 								
 								if (Integer.parseInt(i) < Integer.parseInt(j)) {
-									id = i+"-"+j+"-"+j+"-"+i;
+									direction = true;
+									pos = 0;
 								}
 								else {
-									id = j+"-"+i+"-"+i+"-"+j;
 									direction = false;
 									pos = 1;
 								}
 								
 								System.out.println("----------------");
 								System.out.println(cursor + "/" + model.getEvents().get(cursor));
-								System.out.println(id);
+								System.out.println(edge_id);
 								System.out.println("----------------");
 								
-								sprite = (mySprite) sman.addSprite("s_" + id);
-								sprite.attachToEdge(id);
+								sprite = (mySprite) sman.addSprite("s_" + edge_id);
+								sprite.attachToEdge(edge_id);
 								sprite.setPosition(pos);
-								sprite.setStart(pos);
-								sprite.setEnd(Math.abs(pos-1));
 								sprite.setDirection(direction);
 								sprite.addAttribute("ui.class", model.getEvents().get(cursor).get(0));
 							}
@@ -346,6 +358,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 								 * arrives to this blocking code, then it will throw an exception.
 								 */
 								Thread.currentThread().interrupt();
+								scenario_reprise = true;
 								break;
 							}
 						}
@@ -361,7 +374,8 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		toolbar.add(pauseButton);
 		pauseButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				scenario_execution.interrupt(); // it interrupts the waiting thread and throws the exception InterruptedException
+				// it interrupts the waiting thread and throws the exception InterruptedException
+				scenario_execution.interrupt();
 			}
 		});
 
@@ -426,22 +440,27 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		setDisplay(html);
 	}
 	
+	private String getEdgebyNodes(String i, String j) {
+		if (Integer.parseInt(i) < Integer.parseInt(j))
+			return i+"-"+j+"-"+j+"-"+i;
+		else
+			return j+"-"+i+"-"+i+"-"+j;
+	}
+	
 	public void setDisplay(String s) {
 		display.setText(s);
 	}
 	
-	protected class mySpritesFactory extends SpriteFactory {
+	private class mySpritesFactory extends SpriteFactory {
 		@Override
 		public Sprite newSprite(String id, SpriteManager manager, Values position) {
 			return new mySprite(id, manager);
 		}
 	}
 	
-	protected class mySprite extends Sprite {
-		protected double step = 0.01;
-		protected double start = 0;
-		protected double end = 1;
-		protected boolean direction = true;
+	private class mySprite extends Sprite {
+		private double step = 0.01;
+		private boolean direction = true;
 		
 		public mySprite(String identifier, SpriteManager manager) {
 			super(identifier, manager);
@@ -449,14 +468,6 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		
 		public void setDirection(boolean direction) {
 			this.direction = direction;
-		}
-		
-		public void setStart(double start) {
-			this.start = start;
-		}
-
-		public void setEnd(double end) {
-			this.end = end;
 		}
 
 		/**
