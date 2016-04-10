@@ -27,7 +27,9 @@ import javax.swing.JToolBar;
 
 import org.graphstream.graph.*;
 import org.graphstream.graph.implementations.MultiGraph;
+import org.graphstream.ui.graphicGraph.stylesheet.Values;
 import org.graphstream.ui.spriteManager.Sprite;
+import org.graphstream.ui.spriteManager.SpriteFactory;
 import org.graphstream.ui.spriteManager.SpriteManager;
 import org.graphstream.ui.swingViewer.*;
 import org.graphstream.ui.view.Viewer;
@@ -124,6 +126,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 						graph.addAttribute("ui.quality");
 						graph.addAttribute("ui.stylesheet", styleSheet); // CSS style of the graph
 						sman = new SpriteManager(graph);
+						sman.setSpriteFactory(new mySpritesFactory());
 	
 						LinkedHashMap<String, ArrayList<String>> edges = model.getEdges();
 						for (Entry<String, ArrayList<String>> entry : edges.entrySet()) {
@@ -144,8 +147,9 @@ public class Window extends JFrame implements Observer, ViewerListener {
 						 * to intercept the graphic events.
 						 */
 						fromViewer = viewer.newViewerPipe();
-						fromViewer.addViewerListener(Window.this);
 						fromViewer.addSink(graph);
+						fromViewer.addViewerListener(Window.this);
+						fromViewer.pump();
 	
 						// TODO : MouseWheelListener pour le zoom au lieu de JSlider (priorité minimal)
 						slider = new JSlider();
@@ -257,82 +261,86 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			public void actionPerformed(ActionEvent e) {
 				// scenario execution in a separate thread
 				scenario_execution = new Thread() {
-					public void run() {
-						//for (Entry<Integer, ArrayList<String>> entry : events.entrySet()) {
-						for (int cursor = model.getCursor() ; cursor < model.getEvents().keySet().size() ; cursor++) {
+					public void run() {					
+						int cursor = model.getCursor();
+						String i = model.getEvents().get(cursor).get(1);
+						String j = model.getEvents().get(cursor).get(2);
+						String id = "";
+						boolean direction = true;
+						double pos = 0;
+						
+						if (Integer.parseInt(i) < Integer.parseInt(j)) {
+							id = i+"-"+j+"-"+j+"-"+i;
+						}
+						else {
+							id = j+"-"+i+"-"+i+"-"+j;
+							direction = false;
+							pos = 1;
+						}
+						
+						System.out.println("----------------");
+						System.out.println(cursor + "/" + model.getEvents().get(cursor));
+						System.out.println(id);
+						System.out.println("----------------");
+						
+						mySprite sprite = (mySprite) sman.addSprite("s_" + id);
+						sprite.attachToEdge(id);
+						sprite.setPosition(pos);
+						sprite.setStart(pos);
+						sprite.setEnd(Math.abs(pos-1));
+						sprite.setDirection(direction);
+						sprite.addAttribute("ui.class", model.getEvents().get(cursor).get(0));
+						
+						/*
+						 * Each loop processes a movement, not necessarily an event.
+						 * Thus we have to detect at each loop if there is an event 
+						 * change or if it's just the updating of a sprite.
+						 */
+						while(loop) {
+							
 							/* We need to call the pump() method before each use 
 							 * of the graph to copy back events that have already 
 							 * occurred in the viewer thread inside our thread.
 							 */
 							fromViewer.pump();
-							String i = model.getEvents().get(cursor).get(1);
-							String j = model.getEvents().get(cursor).get(2);
-							String id = "";
-							if (Integer.parseInt(i) < Integer.parseInt(j)) {
-								id = i+"-"+j+"-"+j+"-"+i;
-							}
-							else {
-								id = j+"-"+i+"-"+i+"-"+j;
-							}
-							System.out.println("----------------");
-							System.out.println(cursor + "/" + model.getEvents().get(cursor));
-							System.out.println(id);
-							System.out.println("----------------");
-							graph.getEdge(id).setAttribute("ui.class", model.getEvents().get(cursor).get(0));
 							
-							Sprite s = null;
-							if(sman.getSprite("s_"+id) != null) {
-								s = sman.getSprite("s_"+id);
-							}
-							else {
-								s = sman.addSprite("s_"+id);
-								s.attachToEdge(id);
-							}
-							
-							if(s.hasAttribute("ui.hide")) {
-								s.removeAttribute("ui.hide");
-							}
-							
-							double start;
-							double end;
-							double increment;
-							if(i.equals(graph.getEdge(id).getNode0().getAttribute("ui.label"))) {
-								start = 0.0;
-								end = 1.0;
-								increment = 0.01;
-								while(start < end) {
-									s.setPosition(start);
-									start += increment;
-									try {
-										Thread.sleep(10);
-									} catch (InterruptedException e1) {
-										Thread.currentThread().interrupt();
-										break;
-									}
+							if(!sprite.move()) {
+								controler.incrementCursor();
+								sman.removeSprite(sprite.getId());
+								
+								cursor = model.getCursor();
+								i = model.getEvents().get(cursor).get(1);
+								j = model.getEvents().get(cursor).get(2);
+								id = "";
+								direction = true;
+								pos = 0;
+								
+								if (Integer.parseInt(i) < Integer.parseInt(j)) {
+									id = i+"-"+j+"-"+j+"-"+i;
 								}
-							}
-							else {
-								start = 1.0;
-								end = 0.0;
-								increment = -0.01;
-								while(start > end) {
-									s.setPosition(start);
-									start += increment;
-									try {
-										Thread.sleep(10);
-									} catch (InterruptedException e1) {
-										Thread.currentThread().interrupt();
-										break;
-									}
+								else {
+									id = j+"-"+i+"-"+i+"-"+j;
+									direction = false;
+									pos = 1;
 								}
+								
+								System.out.println("----------------");
+								System.out.println(cursor + "/" + model.getEvents().get(cursor));
+								System.out.println(id);
+								System.out.println("----------------");
+								
+								sprite = (mySprite) sman.addSprite("s_" + id);
+								sprite.attachToEdge(id);
+								sprite.setPosition(pos);
+								sprite.setStart(pos);
+								sprite.setEnd(Math.abs(pos-1));
+								sprite.setDirection(direction);
+								sprite.addAttribute("ui.class", model.getEvents().get(cursor).get(0));
 							}
 							
-							s.addAttribute("ui.hide");
-							
-							controler.incrementCursor();
 							try {
-								Thread.sleep(500); // speed of execution
-							} catch (InterruptedException e1) {
+								Thread.sleep(10);
+							} catch (InterruptedException e) {
 								/* Even if the thread is not waiting on the blocking code at the time of the 
 								 * interruption, it will continue to reach this blocking code. And when it 
 								 * arrives to this blocking code, then it will throw an exception.
@@ -417,7 +425,66 @@ public class Window extends JFrame implements Observer, ViewerListener {
                 + "</html>";
 		setDisplay(html);
 	}
+	
+	public void setDisplay(String s) {
+		display.setText(s);
+	}
+	
+	protected class mySpritesFactory extends SpriteFactory {
+		@Override
+		public Sprite newSprite(String id, SpriteManager manager, Values position) {
+			return new mySprite(id, manager);
+		}
+	}
+	
+	protected class mySprite extends Sprite {
+		protected double step = 0.01;
+		protected double start = 0;
+		protected double end = 1;
+		protected boolean direction = true;
+		
+		public mySprite(String identifier, SpriteManager manager) {
+			super(identifier, manager);
+		}
+		
+		public void setDirection(boolean direction) {
+			this.direction = direction;
+		}
+		
+		public void setStart(double start) {
+			this.start = start;
+		}
 
+		public void setEnd(double end) {
+			this.end = end;
+		}
+
+		/**
+		 * Move the sprite in the appropriate direction.
+		 */
+		public boolean move() {
+			double p = getX();
+			
+			if(direction)
+				p += step;
+			else
+				p -= step;
+			
+			
+			if(p<0 || p>1) {
+				return false;
+			}
+			else {
+				setPosition(p);
+				return true;
+			}
+		}
+	}
+	
+	/*
+	 *  ViewerListener interface
+	 */
+	// --------------------------------
 	public void viewClosed(String id) {
 		loop = false;
 	}
@@ -429,35 +496,59 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	public void buttonReleased(String id) {
 		System.out.println("Noeud " + id + " relâché");
 	}
+	// --------------------------------
 	
-	public void setDisplay(String s) {
-		display.setText(s);
-	}
 	
+	/*
+	 *  Style
+	 */
 	// TODO : mettre au point le style (juste un test pour l'instant)
 	// TODO : il faudra mettre ça au propre dans un fichier peut-être
 	protected static String styleSheet =
-			"edge.red {"+
+			"sprite.red {"+
 			"	fill-color: red;"+
 			"}"+
-			"edge.blue {"+
+			"sprite.blue {"+
 			"	fill-color: blue;"+
 			"}"+
-			"edge.purple {"+
+			"sprite.purple {"+
 			"	fill-color: purple;"+
 			"}"+
-			"edge.yellow {"+
+			"sprite.yellow {"+
 			"	fill-color: yellow;"+
 			"}"+
-			"edge.green {"+
+			"sprite.green {"+
 			"	fill-color: green;"+
 			"}"+
-			"edge.orange {"+
+			"sprite.orange {"+
 			"	fill-color: orange;"+
+			"}"+
+			"sprite {"+
+			"	shape: circle;"+
+			"	size: 5px;"+
+			"	fill-mode: plain;"+
+			"	fill-color: black;"+
+			"	stroke-mode: none;"+
+			"}"+
+			"graph {"+
+			"	fill-mode: plain;"+
+			"	fill-color: white, gray;"+
+			"	padding: 60px;"+
 			"}"+
 			"node {"+
 			"	text-alignment: under;"+
 			"	text-color: black;"+
+			"	size-mode: dyn-size;"+
+			"	size: 15px;"+
+			"	fill-color: black;"+
+			"	fill-mode: dyn-plain;"+
+			"}"+
+			"edge {"+
+			"	size: 1px;"+
+			"	shape: line;"+
+			"	fill-color: grey;"+
+			"	fill-mode: plain;"+
+			"	stroke-mode: none;"+
 			"}"
 	;
 

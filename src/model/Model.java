@@ -31,14 +31,14 @@ public class Model extends Observable {
 		final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 
 		try {
-			// création d'un parseur et d'un document
+			// create a parser and a document
 			final DocumentBuilder builder = factory.newDocumentBuilder();
 			final Document document= builder.parse(new File(path));
 
-			// récupération de l'element racine
+			// recovery of the root element
 			final Element racine = document.getDocumentElement();
 
-			// récupération du nombre d'agents et des arcs
+			// recovery of the number of agents and edges
 			final NodeList racineNoeuds = racine.getChildNodes();
 			final int nbRacineNoeuds = racineNoeuds.getLength();
 
@@ -51,13 +51,13 @@ public class Model extends Observable {
 					else {
 						final Element arc = (Element) racineNoeuds.item(n);
 
-						// ID de l'arc avec tiret entre les sommets pour différencer par exemple
-						// l'arc 11 à 2 et l'arc 1 à 12 (sans tiret, l'ID serait 112 pour les deux).
+						// Edges' ID with dash between nodes' names to differentiate them, for 
+						// example the edge 11-2 and the edge 1-12 with no dashes would be 112 for both.
 						String i = arc.getAttribute("i");
 						String j = arc.getAttribute("j");
 						String id = "";
 						
-						// convention de notation de l'ID : AB-BA avec A < B
+						// IMPORTANT : naming convention of ID : AB-BA with A < B
 						if (Integer.parseInt(i) < Integer.parseInt(j)) {
 							id = i+"-"+j+"-"+j+"-"+i;
 						}
@@ -70,7 +70,7 @@ public class Model extends Observable {
 						nodes.add(j);
 						edges.put(id, nodes);
 						
-						// affichage de l'id de l'arc
+						// display of the edge's ID
 						System.out.println("\n*************ARC************");
 						System.out.println(id);
 					}
