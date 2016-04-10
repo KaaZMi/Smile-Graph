@@ -12,8 +12,10 @@ import java.util.Map.Entry;
 import java.util.Observable;
 import java.util.Observer;
 
+import javax.swing.AbstractButton;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -22,7 +24,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JSlider;
 import javax.swing.JToolBar;
 
 import org.graphstream.graph.*;
@@ -50,10 +51,11 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	private JMenuItem openLOG = null;
 	private JMenuItem save = null;
 	private JMenuItem exit = null;
+	private JMenu options = null;
+	private JCheckBoxMenuItem autolayout = null;
 	private JMenu help = null;
 	private JMenuItem about = null;
 	private JPanel container = null;
-	private JSlider slider = null;
 	private JPanel side_panel = null;
 	private JFileChooser fileChooser = null;
 	private JLabel display = new JLabel();
@@ -62,6 +64,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	private Model model;
 
 	private Graph graph = null;
+	private Viewer viewer = null;
 	private LinkedHashMap<Integer, ArrayList<String>> events = new LinkedHashMap<Integer, ArrayList<String>>();
 	private Thread scenario_execution = null;
 	private SpriteManager sman = null;
@@ -137,7 +140,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 							node.addAttribute("ui.label", node.getId());
 						}
 	
-						Viewer viewer = new Viewer(graph, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
+						viewer = new Viewer(graph, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
 						viewer.enableAutoLayout();
 						ViewPanel view_panel = viewer.addDefaultView(false); // false indicates "no JFrame"
 	
@@ -151,14 +154,8 @@ public class Window extends JFrame implements Observer, ViewerListener {
 						fromViewer.addSink(graph);
 						fromViewer.addViewerListener(Window.this);
 						fromViewer.pump();
-	
-						// TODO : MouseWheelListener pour le zoom au lieu de JSlider (priorité minimal)
-						slider = new JSlider();
-						slider.addChangeListener(e -> view_panel.getCamera().setViewPercent(slider.getValue() / 10.0));
-						slider.setBackground(Color.white);
 						
 						container.add((Component) view_panel, BorderLayout.CENTER);
-						container.add(slider, BorderLayout.SOUTH);
 					}
 				}
 				container.revalidate();
@@ -201,6 +198,20 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		file.add(save);
 		file.addSeparator();
 		file.add(exit);
+		
+		options = new JMenu("Options");
+
+		autolayout = new JCheckBoxMenuItem("Auto-layout");
+		autolayout.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				if (((AbstractButton) e.getSource()).getModel().isSelected())
+					viewer.disableAutoLayout();
+				else
+					viewer.enableAutoLayout();
+			}
+		});
+
+		options.add(autolayout);
 
 		help = new JMenu("Help");
 
@@ -218,6 +229,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		help.add(about);
 
 		menu.add(file);
+		menu.add(options);
 		menu.add(help);
 	}
 
@@ -513,7 +525,6 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	/*
 	 *  Style
 	 */
-	// TODO : mettre au point le style (juste un test pour l'instant)
 	// TODO : il faudra mettre ça au propre dans un fichier peut-être
 	protected static String styleSheet =
 			"sprite.red {"+
@@ -540,6 +551,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			"	fill-mode: plain;"+
 			"	fill-color: black;"+
 			"	stroke-mode: none;"+
+			"	z-index: 4;"+
 			"}"+
 			"graph {"+
 			"	fill-mode: plain;"+
