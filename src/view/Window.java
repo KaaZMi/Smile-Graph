@@ -59,13 +59,18 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	private JPanel side_panel = null;
 	private JFileChooser fileChooser = null;
 	private JLabel display = new JLabel();
+	
+	private JButton prevButton = null;
+	private JButton play_pauseButton = null;
+	private JButton nextButton = null;
+	private JButton stopButton = null;
+	private boolean play = false;
 
 	private Controler controler;
 	private Model model;
 
 	private Graph graph = null;
 	private Viewer viewer = null;
-	private LinkedHashMap<Integer, ArrayList<String>> events = new LinkedHashMap<Integer, ArrayList<String>>();
 	private Thread scenario_execution = null;
 	private SpriteManager sman = null;
 	private boolean currently_moving = false;
@@ -171,8 +176,8 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
 					String path = fileChooser.getSelectedFile().getAbsolutePath();
 					if(controler.openLOG(path)) {
-						events = model.getEvents();
-						System.out.println(events.size());
+						play_pauseButton.setEnabled(true);
+						nextButton.setEnabled(true);
 					}
 				}
 				container.revalidate();
@@ -233,14 +238,13 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		menu.add(file);
 		menu.add(options);
 		menu.add(help);
+		this.setJMenuBar(menu); // add the menu to the JFrame
 	}
 
 	private void initToolBar() {
 		JToolBar toolbar = new JToolBar();
 
-		JButton prevButton = new JButton(new ImageIcon("playback_prev_icon&16.png"));
-		prevButton.setFocusPainted(false);
-		toolbar.add(prevButton);
+		prevButton = new JButton(new ImageIcon("playback_prev_icon&16.png"));
 		prevButton.addActionListener(new ActionListener() {
 			// TODO : 	revenir en arrière est plus complexe et peut être 
 			// 			fait de différentes façons, questions à poser au prof.
@@ -249,74 +253,30 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			}
 		});
 
-		JButton playButton = new JButton(new ImageIcon("playback_play_icon&16.png"));
-		toolbar.add(playButton);
-		playButton.addActionListener(new ActionListener() {
+		play_pauseButton = new JButton(new ImageIcon("playback_play_icon&16.png"));
+		play_pauseButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				// scenario execution in a separate thread
-				scenario_execution = new Thread() {
-					public void run() {
-						int cursor = 0;
-						boolean direction = true;
-						double pos = 0;
-						String i = null;
-						String j = null;
-						String edge_id = null;
-						mySprite sprite = null;
-						
-						if (!currently_moving) {
-							cursor = model.getCursor();
-							i = model.getEvents().get(cursor).get(1);
-							j = model.getEvents().get(cursor).get(2);
-							edge_id = getEdgebyNodes(i,j);
+				if (!prevButton.isEnabled() && !stopButton.isEnabled()) {
+					prevButton.setEnabled(true);
+					stopButton.setEnabled(true);
+				}
+				
+				if (!play) {
+					play = true;
+					((AbstractButton) e.getSource()).setIcon(new ImageIcon("playback_pause_icon&16.png"));
+					
+					// scenario execution in a separate thread
+					scenario_execution = new Thread() {
+						public void run() {
+							int cursor = 0;
+							boolean direction = true;
+							double pos = 0;
+							String i = null;
+							String j = null;
+							String edge_id = null;
+							mySprite sprite = null;
 							
-							if (Integer.parseInt(i) < Integer.parseInt(j)) {
-								direction = true;
-								pos = 0;
-							}
-							else {
-								direction = false;
-								pos = 1;
-							}
-							
-							System.out.println("----------------");
-							System.out.println(cursor + "/" + model.getEvents().get(cursor));
-							System.out.println(edge_id);
-							System.out.println("----------------");
-							
-							sprite = (mySprite) sman.addSprite("s_" + edge_id);
-							sprite.attachToEdge(edge_id);
-							sprite.setPosition(pos);
-							sprite.setDirection(direction);
-							sprite.addAttribute("ui.class", model.getEvents().get(cursor).get(0));
-						}
-						else {
-							cursor = model.getCursor();
-							i = model.getEvents().get(cursor).get(1);
-							j = model.getEvents().get(cursor).get(2);
-							edge_id = getEdgebyNodes(i,j);
-							
-							sprite = (mySprite) sman.getSprite("s_" + edge_id);
-							currently_moving = false;
-						}
-						
-						/*
-						 * Each loop processes a movement, not necessarily an event.
-						 * Thus we have to detect at each loop if there is an event 
-						 * change or if it's just the updating of a sprite.
-						 */
-						while(loop) {
-							
-							/* We need to call the pump() method before each use 
-							 * of the graph to copy back events that have already 
-							 * occurred in the viewer thread inside our thread.
-							 */
-							fromViewer.pump();
-							
-							if(!sprite.move()) {
-								controler.incrementCursor();
-								sman.removeSprite(sprite.getId());
-								
+							if (!currently_moving) {
 								cursor = model.getCursor();
 								i = model.getEvents().get(cursor).get(1);
 								j = model.getEvents().get(cursor).get(2);
@@ -342,40 +302,94 @@ public class Window extends JFrame implements Observer, ViewerListener {
 								sprite.setDirection(direction);
 								sprite.addAttribute("ui.class", model.getEvents().get(cursor).get(0));
 							}
-							
-							try {
-								Thread.sleep(10);
-							} catch (InterruptedException e) {
-								/* Even if the thread is not waiting on the blocking code at the time of the 
-								 * interruption, it will continue to reach this blocking code. And when it 
-								 * arrives to this blocking code, then it will throw an exception.
-								 */
-								Thread.currentThread().interrupt();
-								currently_moving = true;
-								break;
+							else {
+								cursor = model.getCursor();
+								i = model.getEvents().get(cursor).get(1);
+								j = model.getEvents().get(cursor).get(2);
+								edge_id = getEdgebyNodes(i,j);
+								
+								sprite = (mySprite) sman.getSprite("s_" + edge_id);
+								currently_moving = false;
 							}
+							
+							/*
+							 * Each loop processes a movement, not necessarily an event.
+							 * Thus we have to detect at each loop if there is an event 
+							 * change or if it's just the updating of a sprite.
+							 */
+							while(loop) {
+								
+								/* We need to call the pump() method before each use 
+								 * of the graph to copy back events that have already 
+								 * occurred in the viewer thread inside our thread.
+								 */
+								fromViewer.pump();
+								
+								if(!sprite.move()) {
+									controler.incrementCursor();
+									sman.removeSprite(sprite.getId());
+									
+									cursor = model.getCursor();
+									i = model.getEvents().get(cursor).get(1);
+									j = model.getEvents().get(cursor).get(2);
+									edge_id = getEdgebyNodes(i,j);
+									
+									if (Integer.parseInt(i) < Integer.parseInt(j)) {
+										direction = true;
+										pos = 0;
+									}
+									else {
+										direction = false;
+										pos = 1;
+									}
+									
+									System.out.println("----------------");
+									System.out.println(cursor + "/" + model.getEvents().get(cursor));
+									System.out.println(edge_id);
+									System.out.println("----------------");
+									
+									sprite = (mySprite) sman.addSprite("s_" + edge_id);
+									sprite.attachToEdge(edge_id);
+									sprite.setPosition(pos);
+									sprite.setDirection(direction);
+									sprite.addAttribute("ui.class", model.getEvents().get(cursor).get(0));
+								}
+								
+								try {
+									Thread.sleep(10);
+								} catch (InterruptedException e) {
+									/* Even if the thread is not waiting on the blocking code at the time of the 
+									 * interruption, it will continue to reach this blocking code. And when it 
+									 * arrives to this blocking code, then it will throw an exception.
+									 */
+									Thread.currentThread().interrupt();
+									currently_moving = true;
+									break;
+								}
+							}
+							Thread.currentThread().interrupt();
 						}
-						Thread.currentThread().interrupt();
-					}
-				};
-				scenario_execution.start();
-			}
-		});
-		
-		JButton pauseButton = new JButton(new ImageIcon("playback_pause_icon&16.png"));
-		pauseButton.setFocusPainted(false);
-		toolbar.add(pauseButton);
-		pauseButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				// it interrupts the waiting thread and throws the exception InterruptedException
-				scenario_execution.interrupt();
+					};
+					scenario_execution.start();
+				}
+				else {
+					play = false;
+					((AbstractButton) e.getSource()).setIcon(new ImageIcon("playback_play_icon&16.png"));
+					
+					// it interrupts the waiting thread and throws the exception InterruptedException
+					scenario_execution.interrupt();
+				}
 			}
 		});
 
-		JButton nextButton = new JButton(new ImageIcon("playback_next_icon&16.png"));
-		toolbar.add(nextButton);
+		nextButton = new JButton(new ImageIcon("playback_next_icon&16.png"));
 		nextButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				if (!prevButton.isEnabled() && !stopButton.isEnabled()) {
+					prevButton.setEnabled(true);
+					stopButton.setEnabled(true);
+				}
+				
 				// scenario execution in a separate thread
 				scenario_execution = new Thread() {
 					public void run() {
@@ -459,10 +473,12 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			}
 		});
 
-		JButton stopButton = new JButton(new ImageIcon("playback_stop_icon&16.png"));
-		toolbar.add(stopButton);
+		stopButton = new JButton(new ImageIcon("playback_stop_icon&16.png"));
 		stopButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				prevButton.setEnabled(false);
+				stopButton.setEnabled(false);
+				
 				// it interrupts the waiting thread and throws the exception InterruptedException
 				scenario_execution.interrupt();
 				try {
@@ -481,10 +497,20 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				controler.resetCursor();
 			}
 		});
-
+		
+		prevButton.setFocusPainted(false);
+		play_pauseButton.setFocusPainted(false);
+		nextButton.setFocusPainted(false);
+		stopButton.setFocusPainted(false);
+		toolbar.add(prevButton);
+		toolbar.add(play_pauseButton);
+		toolbar.add(nextButton);
+		toolbar.add(stopButton);
+		prevButton.setEnabled(false);
+		play_pauseButton.setEnabled(false);
+		nextButton.setEnabled(false);
+		stopButton.setEnabled(false);
 		toolbar.setFloatable(false);
-
-		this.setJMenuBar(menu); // add the menu to the JFrame
 		container.add(toolbar, BorderLayout.NORTH); // add the toolbar to the main panel
 	}
 
