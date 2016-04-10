@@ -68,7 +68,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	private LinkedHashMap<Integer, ArrayList<String>> events = new LinkedHashMap<Integer, ArrayList<String>>();
 	private Thread scenario_execution = null;
 	private SpriteManager sman = null;
-	private boolean scenario_reprise = false;
+	private boolean currently_moving = false;
 
 	public Window(Controler controler, Model model){
 		this.controler = controler;
@@ -283,7 +283,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 						String edge_id = null;
 						mySprite sprite = null;
 						
-						if (!scenario_reprise) {
+						if (!currently_moving) {
 							cursor = model.getCursor();
 							i = model.getEvents().get(cursor).get(1);
 							j = model.getEvents().get(cursor).get(2);
@@ -316,7 +316,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 							edge_id = getEdgebyNodes(i,j);
 							
 							sprite = (mySprite) sman.getSprite("s_" + edge_id);
-							scenario_reprise = false;
+							currently_moving = false;
 						}
 						
 						/*
@@ -370,7 +370,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 								 * arrives to this blocking code, then it will throw an exception.
 								 */
 								Thread.currentThread().interrupt();
-								scenario_reprise = true;
+								currently_moving = true;
 								break;
 							}
 						}
@@ -395,29 +395,86 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		toolbar.add(nextButton);
 		nextButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				int cursor = model.getCursor();
-				if(cursor < model.getEvents().keySet().size()) {
-					/* We need to call the pump() method before each use 
-					 * of the graph to copy back events that have already 
-					 * occurred in the viewer thread inside our thread.
-					 */
-					fromViewer.pump();
-					String i = model.getEvents().get(cursor).get(1);
-					String j = model.getEvents().get(cursor).get(2);
-					String id = "";
-					if (Integer.parseInt(i) < Integer.parseInt(j)) {
-						id = i+"-"+j+"-"+j+"-"+i;
+				// scenario execution in a separate thread
+				scenario_execution = new Thread() {
+					public void run() {
+						int cursor = 0;
+						boolean direction = true;
+						double pos = 0;
+						String i = null;
+						String j = null;
+						String edge_id = null;
+						mySprite sprite = null;
+						
+						if (!currently_moving) {
+							cursor = model.getCursor();
+							i = model.getEvents().get(cursor).get(1);
+							j = model.getEvents().get(cursor).get(2);
+							edge_id = getEdgebyNodes(i,j);
+							
+							if (Integer.parseInt(i) < Integer.parseInt(j)) {
+								direction = true;
+								pos = 0;
+							}
+							else {
+								direction = false;
+								pos = 1;
+							}
+							
+							System.out.println("----------------");
+							System.out.println(cursor + "/" + model.getEvents().get(cursor));
+							System.out.println(edge_id);
+							System.out.println("----------------");
+							
+							sprite = (mySprite) sman.addSprite("s_" + edge_id);
+							sprite.attachToEdge(edge_id);
+							sprite.setPosition(pos);
+							sprite.setDirection(direction);
+							sprite.addAttribute("ui.class", model.getEvents().get(cursor).get(0));
+						}
+						else {
+							cursor = model.getCursor();
+							i = model.getEvents().get(cursor).get(1);
+							j = model.getEvents().get(cursor).get(2);
+							edge_id = getEdgebyNodes(i,j);
+							
+							sprite = (mySprite) sman.getSprite("s_" + edge_id);
+						}
+						
+						/*
+						 * Each loop processes a movement until it reaches the 
+						 * destination node.
+						 */
+						while(loop) {
+							
+							/* We need to call the pump() method before each use 
+							 * of the graph to copy back events that have already 
+							 * occurred in the viewer thread inside our thread.
+							 */
+							fromViewer.pump();
+							
+							if(!sprite.move()) {
+								controler.incrementCursor();
+								sman.removeSprite(sprite.getId());
+								break;
+							}
+							
+							try {
+								Thread.sleep(10);
+							} catch (InterruptedException e2) {
+								/* should never happen because 
+								 * all the buttons are disabled 
+								 * until the end of the action.
+								 */
+								Thread.currentThread().interrupt();
+								break;
+							}
+						}
+						currently_moving = false;
+						Thread.currentThread().interrupt();
 					}
-					else {
-						id = j+"-"+i+"-"+i+"-"+j;
-					}
-					System.out.println("----------------");
-					System.out.println(cursor + "/" + model.getEvents().get(cursor));
-					System.out.println(id);
-					System.out.println("----------------");
-					graph.getEdge(id).setAttribute("ui.class", model.getEvents().get(cursor).get(0));
-					controler.incrementCursor();
-				}
+				};
+				scenario_execution.start();
 			}
 		});
 
