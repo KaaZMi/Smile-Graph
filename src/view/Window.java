@@ -13,6 +13,7 @@ import java.util.Observable;
 import java.util.Observer;
 
 import javax.swing.AbstractButton;
+import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
@@ -24,6 +25,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JToolBar;
 
 import org.graphstream.graph.*;
@@ -53,6 +55,10 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	private JMenuItem exit = null;
 	private JMenu options = null;
 	private JCheckBoxMenuItem autolayout = null;
+	private JMenu speed_menu = null;
+	private JMenuItem speed_slow = null;
+	private JMenuItem speed_normal = null;
+	private JMenuItem speed_fast = null;
 	private JMenu help = null;
 	private JMenuItem about = null;
 	private JPanel container = null;
@@ -74,6 +80,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	private Thread scenario_execution = null;
 	private SpriteManager sman = null;
 	private boolean currently_moving = false;
+	private int speed = 10;
 
 	public Window(Controler controler, Model model){
 		this.controler = controler;
@@ -163,6 +170,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 						fromViewer.pump();
 						
 						container.add((Component) view_panel, BorderLayout.CENTER);
+						autolayout.setEnabled(true);
 					}
 				}
 				container.revalidate();
@@ -178,6 +186,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 					if(controler.openLOG(path)) {
 						play_pauseButton.setEnabled(true);
 						nextButton.setEnabled(true);
+						speed_menu.setEnabled(true);
 					}
 				}
 				container.revalidate();
@@ -217,8 +226,42 @@ public class Window extends JFrame implements Observer, ViewerListener {
 					viewer.enableAutoLayout();
 			}
 		});
+		autolayout.setEnabled(false);
+		
+		speed_menu = new JMenu("Execution speed");
+		ButtonGroup speed_group = new ButtonGroup();
+		speed_slow = new JRadioButtonMenuItem("Slow");
+		speed_normal = new JRadioButtonMenuItem("Normal");
+		speed_fast = new JRadioButtonMenuItem("Fast");
+		speed_normal.setSelected(true); // default speed
+		speed_group.add(speed_slow);
+		speed_group.add(speed_normal);
+		speed_group.add(speed_fast);
+		
+		speed_slow.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				setSpeed(30);
+			}
+		});
+		speed_normal.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				setSpeed(10);
+			}
+		});
+		speed_fast.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				setSpeed(1);
+			}
+		});
+		
+		speed_menu.add(speed_slow);
+		speed_menu.add(speed_normal);
+		speed_menu.add(speed_fast);
+		
+		speed_menu.setEnabled(false);
 
 		options.add(autolayout);
+		options.add(speed_menu);
 
 		help = new JMenu("Help");
 
@@ -356,7 +399,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 								}
 								
 								try {
-									Thread.sleep(10);
+									Thread.sleep(speed);
 								} catch (InterruptedException e) {
 									/* Even if the thread is not waiting on the blocking code at the time of the 
 									 * interruption, it will continue to reach this blocking code. And when it 
@@ -455,7 +498,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 							}
 							
 							try {
-								Thread.sleep(10);
+								Thread.sleep(speed);
 							} catch (InterruptedException e2) {
 								/* should never happen because 
 								 * all the buttons are disabled 
@@ -539,6 +582,10 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	
 	public void setDisplay(String s) {
 		display.setText(s);
+	}
+	
+	public void setSpeed(int speed) {
+		this.speed = speed;
 	}
 	
 	private class mySpritesFactory extends SpriteFactory {
@@ -625,7 +672,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			"}"+
 			"sprite {"+
 			"	shape: circle;"+
-			"	size: 5px;"+
+			"	size: 10px;"+
 			"	fill-mode: plain;"+
 			"	fill-color: black;"+
 			"	stroke-mode: none;"+
