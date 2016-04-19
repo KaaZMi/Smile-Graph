@@ -20,7 +20,7 @@ import org.xml.sax.SAXException;
 public class Model extends Observable {
 
 	private LinkedHashMap<String, ArrayList<String>> edges = new LinkedHashMap<String, ArrayList<String>>();
-	private LinkedHashMap<Integer, ArrayList<String>> events = new LinkedHashMap<Integer, ArrayList<String>>();
+	private ArrayList<ScenarioEvent> events = new ArrayList<ScenarioEvent>();
 	private int cursor = 0; // current position of the scenario
 	
 	private boolean graphLoaded = false;
@@ -99,7 +99,6 @@ public class Model extends Observable {
 			String line = null;
 			
 			int loop = 0; // DEV
-			int i = 0;
 			String color = null;
 			boolean etudier_cette_ligne = false;
 
@@ -147,34 +146,20 @@ public class Model extends Observable {
 					}
 
 					if (etudier_cette_ligne) {
-						// séparation des agents
+						// separate source and destination
 						String[] agents = parts[0].trim().split("->");
-
-						// définition et remplissage des valeurs de l'événement courant
-						ArrayList<String> values = new ArrayList<String>();
 						
-						// couleur que prendra l'arc à son "exécution"
-						values.add(color);
-						
-						// agents en retirant "Ag"
-						values.add(agents[0].trim().replaceAll("[^\\d.]", "")); 
-						values.add(agents[1].trim().replaceAll("[^\\d.]", ""));
-						
-						values.add(parts[1].trim()); // type du message
+						ScenarioEvent scenario_event = new ScenarioEvent();
+						scenario_event.setColor(color);
+						scenario_event.setSource(agents[0].trim().replaceAll("[^\\d.]", ""));
+						scenario_event.setDestination(agents[1].trim().replaceAll("[^\\d.]", ""));
+						scenario_event.setType(parts[1].trim());
 						if (parts.length > 2) {
-							values.add(parts[2].trim()); // contenu du message
+							scenario_event.setContent(parts[2].trim());
 						}
 
-						// ajout de l'évenement courant à la map
-						this.events.put(i, values);
-
-						// DEV : vérification du stockage de l'événement
-						for (String value: this.events.get(i)) {
-						    System.out.print(value);
-						}
-						System.out.println("");
-						
-						i++;
+						// add the current event to the map
+						this.events.add(scenario_event);
 					}
 
 					// DEV : juste pour pas lire tout le fichier
@@ -184,9 +169,6 @@ public class Model extends Observable {
 					}
 				}
 			}
-
-			// DEV : vérification du filtrage effectué
-			//System.out.println(events.size());
 
 			br.close();
 		}
@@ -204,7 +186,7 @@ public class Model extends Observable {
 		return edges;
 	}
 	
-	public LinkedHashMap<Integer, ArrayList<String>> getEvents() {
+	public ArrayList<ScenarioEvent> getEvents() {
 		return events;
 	}
 

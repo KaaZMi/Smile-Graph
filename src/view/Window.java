@@ -6,6 +6,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
@@ -321,8 +322,8 @@ public class Window extends JFrame implements Observer, ViewerListener {
 							
 							if (!currently_moving) {
 								cursor = model.getCursor();
-								i = model.getEvents().get(cursor).get(1);
-								j = model.getEvents().get(cursor).get(2);
+								i = model.getEvents().get(cursor).getSource();
+								j = model.getEvents().get(cursor).getDestination();
 								edge_id = getEdgebyNodes(i,j);
 								
 								if (Integer.parseInt(i) < Integer.parseInt(j)) {
@@ -335,7 +336,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 								}
 								
 								System.out.println("----------------");
-								System.out.println(cursor + "/" + model.getEvents().get(cursor));
+								System.out.println(cursor + "/" + model.getEvents().get(cursor).toString());
 								System.out.println(edge_id);
 								System.out.println("----------------");
 								
@@ -343,12 +344,12 @@ public class Window extends JFrame implements Observer, ViewerListener {
 								sprite.attachToEdge(edge_id);
 								sprite.setPosition(pos);
 								sprite.setDirection(direction);
-								sprite.addAttribute("ui.class", model.getEvents().get(cursor).get(0));
+								sprite.addAttribute("ui.class", model.getEvents().get(cursor).getColor());
 							}
 							else {
 								cursor = model.getCursor();
-								i = model.getEvents().get(cursor).get(1);
-								j = model.getEvents().get(cursor).get(2);
+								i = model.getEvents().get(cursor).getSource();
+								j = model.getEvents().get(cursor).getDestination();
 								edge_id = getEdgebyNodes(i,j);
 								
 								sprite = (mySprite) sman.getSprite("s_" + edge_id);
@@ -373,8 +374,8 @@ public class Window extends JFrame implements Observer, ViewerListener {
 									sman.removeSprite(sprite.getId());
 									
 									cursor = model.getCursor();
-									i = model.getEvents().get(cursor).get(1);
-									j = model.getEvents().get(cursor).get(2);
+									i = model.getEvents().get(cursor).getSource();
+									j = model.getEvents().get(cursor).getDestination();
 									edge_id = getEdgebyNodes(i,j);
 									
 									if (Integer.parseInt(i) < Integer.parseInt(j)) {
@@ -395,7 +396,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 									sprite.attachToEdge(edge_id);
 									sprite.setPosition(pos);
 									sprite.setDirection(direction);
-									sprite.addAttribute("ui.class", model.getEvents().get(cursor).get(0));
+									sprite.addAttribute("ui.class", model.getEvents().get(cursor).getColor());
 								}
 								
 								try {
@@ -446,8 +447,8 @@ public class Window extends JFrame implements Observer, ViewerListener {
 						
 						if (!currently_moving) {
 							cursor = model.getCursor();
-							i = model.getEvents().get(cursor).get(1);
-							j = model.getEvents().get(cursor).get(2);
+							i = model.getEvents().get(cursor).getSource();
+							j = model.getEvents().get(cursor).getDestination();
 							edge_id = getEdgebyNodes(i,j);
 							
 							if (Integer.parseInt(i) < Integer.parseInt(j)) {
@@ -468,12 +469,12 @@ public class Window extends JFrame implements Observer, ViewerListener {
 							sprite.attachToEdge(edge_id);
 							sprite.setPosition(pos);
 							sprite.setDirection(direction);
-							sprite.addAttribute("ui.class", model.getEvents().get(cursor).get(0));
+							sprite.addAttribute("ui.class", model.getEvents().get(cursor).getColor());
 						}
 						else {
 							cursor = model.getCursor();
-							i = model.getEvents().get(cursor).get(1);
-							j = model.getEvents().get(cursor).get(2);
+							i = model.getEvents().get(cursor).getSource();
+							j = model.getEvents().get(cursor).getDestination();
 							edge_id = getEdgebyNodes(i,j);
 							
 							sprite = (mySprite) sman.getSprite("s_" + edge_id);

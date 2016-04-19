@@ -45,7 +45,7 @@ public class Controler {
 
 	public void control() {
 		if ( view != null ) {
-			if ( model.getCursor() > model.getEvents().keySet().size()) {
+			if ( model.getCursor() > model.getEvents().size()) {
 				// TODO : gérer affichage des erreurs dans la vue
 			}
 		}
