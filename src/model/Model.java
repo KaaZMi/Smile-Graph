@@ -26,6 +26,7 @@ public class Model extends Observable {
 	private boolean graphLoaded = false;
 	private boolean scenarioLoaded = false;
 	private int nbAgents = 0;
+	private static int str_index = 0; // index to browse the content of a message
 
 	public boolean openXML(String path) {
 		final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -92,7 +93,7 @@ public class Model extends Observable {
 		notifyObservers();
 		return true;
 	}
-
+	
 	public boolean openLOG(String path) {
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(path));
@@ -154,8 +155,12 @@ public class Model extends Observable {
 						scenario_event.setSource(agents[0].trim().replaceAll("[^\\d.]", ""));
 						scenario_event.setDestination(agents[1].trim().replaceAll("[^\\d.]", ""));
 						scenario_event.setType(parts[1].trim());
+						// if the event has a content
 						if (parts.length > 2) {
 							scenario_event.setContent(parts[2].trim());
+							System.out.println(parts[2].trim());
+							System.out.println(buildList(parts[2].trim()));
+							str_index = 0; // reset the index
 						}
 
 						// add the current event to the map
@@ -180,6 +185,45 @@ public class Model extends Observable {
 		setChanged();
 		notifyObservers();
 		return true;
+	}
+	
+	/**
+	 * Transform a string which contains nested array to a JAVA array
+	 * @param str
+	 * @return array
+	 */
+	public ArrayList<Object> buildList(String str) {
+		ArrayList<Object> list = new ArrayList<>();
+		String stack = "";
+
+		while (str_index < str.length()) {
+			char c = str.charAt(str_index++);
+			
+			if (c == '[') {
+				if (!stack.trim().equals("")) {
+					// add the current stack to the current list
+					list.add(stack.trim());
+					stack = "";
+				}
+				list.add(buildList(str)); // new sublist
+			}
+			else if (c == ']') {
+				if (!stack.trim().equals("")) {
+					// add the current stack to the current list
+					list.add(stack.trim());
+					stack = "";
+				}
+				break;
+			}
+			else if (c == ',') {
+				// pass
+			}
+			else {
+				stack += c;
+			}
+		}
+		
+	    return list;
 	}
 	
 	public LinkedHashMap<String, ArrayList<String>> getEdges() {

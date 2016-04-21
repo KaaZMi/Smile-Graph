@@ -6,7 +6,6 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
@@ -80,7 +79,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	private Viewer viewer = null;
 	private Thread scenario_execution = null;
 	private SpriteManager sman = null;
-	private boolean currently_moving = false;
+	private boolean currently_moving = false; // is the scenario running ?
 	private int speed = 10;
 
 	public Window(Controler controler, Model model){
@@ -162,7 +161,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 						/* IMPORTANT !
 						 * We connect back the viewer to the graph,
 						 * the graph becomes a sink for the viewer.
-						 * We also install us as a viewer listener 
+						 * We also install a viewer listener 
 						 * to intercept the graphic events.
 						 */
 						fromViewer = viewer.newViewerPipe();
@@ -307,6 +306,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				
 				if (!play) {
 					play = true;
+					// switch between play/pause icon
 					((AbstractButton) e.getSource()).setIcon(new ImageIcon("playback_pause_icon&16.png"));
 					
 					// scenario execution in a separate thread
@@ -569,6 +569,9 @@ public class Window extends JFrame implements Observer, ViewerListener {
                 + "<p>" + model.isScenarioLoaded() + "</p>\n"
                 + "<h2>Number of agents</h2>\n"
                 + "<p>" + model.getNbAgents() + "</p>\n"
+        		+ "<h1>Event</h1>\n"
+                + "<h2>Type</h2>\n"
+                + "<p>blabla</p>\n"
                 + "</body>\n"
                 + "</html>";
 		setDisplay(html);
@@ -593,40 +596,6 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		@Override
 		public Sprite newSprite(String id, SpriteManager manager, Values position) {
 			return new mySprite(id, manager);
-		}
-	}
-	
-	private class mySprite extends Sprite {
-		private double step = 0.01;
-		private boolean direction = true;
-		
-		public mySprite(String identifier, SpriteManager manager) {
-			super(identifier, manager);
-		}
-		
-		public void setDirection(boolean direction) {
-			this.direction = direction;
-		}
-
-		/**
-		 * Move the sprite in the appropriate direction.
-		 */
-		public boolean move() {
-			double p = getX();
-			
-			if(direction)
-				p += step;
-			else
-				p -= step;
-			
-			
-			if(p<0 || p>1) {
-				return false;
-			}
-			else {
-				setPosition(p);
-				return true;
-			}
 		}
 	}
 	
