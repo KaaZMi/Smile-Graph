@@ -41,6 +41,7 @@ import org.graphstream.ui.view.ViewerPipe;
 
 import controler.Controler;
 import model.Model;
+import model.ScenarioEvent;
 
 @SuppressWarnings("serial")
 public class Window extends JFrame implements Observer, ViewerListener {
@@ -151,6 +152,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 						}
 						for (Node node : graph) {
 							node.addAttribute("ui.label", node.getId());
+							node.addAttribute("memory", new LinkedHashMap<String,ArrayList>());
 						}
 	
 						viewer = new Viewer(graph, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
@@ -347,6 +349,10 @@ public class Window extends JFrame implements Observer, ViewerListener {
 								sprite.addAttribute("ui.class", model.getEvents().get(cursor).getColor());
 							}
 							else {
+								/*
+								 * Recovering the ID of the edge and that 
+								 * of the attached sprite to continue its movement.
+								 */
 								cursor = model.getCursor();
 								i = model.getEvents().get(cursor).getSource();
 								j = model.getEvents().get(cursor).getDestination();
@@ -369,7 +375,14 @@ public class Window extends JFrame implements Observer, ViewerListener {
 								 */
 								fromViewer.pump();
 								
+								/*
+								 * We call the function which moves the sprite
+								 * until it returns false.
+								 */
 								if(!sprite.move()) {
+									// TODO : gérer ce qu'il se passe sur le noeud de destination
+									//updateNode(model.getEvents().get(cursor));
+									
 									controler.incrementCursor();
 									sman.removeSprite(sprite.getId());
 									
@@ -472,6 +485,10 @@ public class Window extends JFrame implements Observer, ViewerListener {
 							sprite.addAttribute("ui.class", model.getEvents().get(cursor).getColor());
 						}
 						else {
+							/*
+							 * Recovering the ID of the edge and that 
+							 * of the attached sprite to continue its movement.
+							 */
 							cursor = model.getCursor();
 							i = model.getEvents().get(cursor).getSource();
 							j = model.getEvents().get(cursor).getDestination();
@@ -492,7 +509,13 @@ public class Window extends JFrame implements Observer, ViewerListener {
 							 */
 							fromViewer.pump();
 							
+							/*
+							 * We call the function which moves the sprite
+							 * until it returns false.
+							 */
 							if(!sprite.move()) {
+								// TODO : gérer ce qu'il se passe sur le noeud de destination
+								
 								controler.incrementCursor();
 								sman.removeSprite(sprite.getId());
 								break;
@@ -582,6 +605,24 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			return i+"-"+j+"-"+j+"-"+i;
 		else
 			return j+"-"+i+"-"+i+"-"+j;
+	}
+	
+	/**
+	 * Update of a node according to information that reached it
+	 */
+	private void updateNode(ScenarioEvent se) {
+		// TODO : mettre un flag aux hypothèses pour la confirmation ou non
+		Node node = graph.getNode(se.getDestination());
+		if (se.getType().contains("Hypothese a tester")) {
+			LinkedHashMap<String,ArrayList> memory = node.getAttribute("memory");
+			for (Object formula : se.getFormulas()) {
+				// check if memory contains this formula
+				System.out.println(formula);
+			}
+			
+		}
+//		ArrayList<Object> test = node.getAttribute("memory");
+//		System.out.println(test);
 	}
 	
 	public void setDisplay(String s) {

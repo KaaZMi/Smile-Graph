@@ -26,7 +26,7 @@ public class mySprite extends Sprite {
 		else
 			p -= step;
 		
-		
+		// the sprite came to the end of the edge
 		if(p<0 || p>1) {
 			return false;
 		}
