@@ -1,11 +1,14 @@
 package model;
 
+import java.util.ArrayList;
+
 public class ScenarioEvent {
 	private String color;
 	private String source;
 	private String destination;
 	private String type;
 	private String content;
+	private ArrayList<Object> formulas = new ArrayList<Object>();
 
 	public String getColor() {
 		return color;
@@ -51,6 +54,20 @@ public class ScenarioEvent {
 	public String toString() {
 		return "ScenarioEvent [color=" + color + ", source=" + source + ", destination=" + destination + ", type="
 				+ type + ", content=" + content + "]";
+	}
+
+	@SuppressWarnings("unchecked")
+	public void parseContent(ArrayList<Object> content) {
+		Object level_1 = (ArrayList<Object>) content.get(0);
+		Object level_2 = ((ArrayList<Object>) level_1).get(1);
+		for (int i = 0 ; i<((ArrayList<Object>) level_2).size() ; i+=3) {
+			Object formula = ((ArrayList<Object>) level_2).get(i);
+			this.formulas.add(formula);
+		}
+	}
+	
+	public ArrayList<Object> getFormulas() {
+		return formulas;
 	}
 
 }

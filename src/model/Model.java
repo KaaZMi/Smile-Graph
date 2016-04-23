@@ -158,9 +158,9 @@ public class Model extends Observable {
 						// if the event has a content
 						if (parts.length > 2) {
 							scenario_event.setContent(parts[2].trim());
-							System.out.println(parts[2].trim());
-							System.out.println(buildList(parts[2].trim()));
-							str_index = 0; // reset the index
+							ArrayList<Object> content = buildList(parts[2].trim());
+							scenario_event.parseContent(content);
+							str_index = 0;
 						}
 
 						// add the current event to the map
@@ -193,14 +193,14 @@ public class Model extends Observable {
 	 * @return array
 	 */
 	public ArrayList<Object> buildList(String str) {
-		ArrayList<Object> list = new ArrayList<>();
+		ArrayList<Object> list = new ArrayList<>(); // the list can contain Strings and sub-lists
 		String stack = "";
 
 		while (str_index < str.length()) {
 			char c = str.charAt(str_index++);
 			
 			if (c == '[') {
-				if (!stack.trim().equals("")) {
+				if (!stack.trim().equals("") && !stack.trim().equals(",")) {
 					// add the current stack to the current list
 					list.add(stack.trim());
 					stack = "";
@@ -208,15 +208,12 @@ public class Model extends Observable {
 				list.add(buildList(str)); // new sublist
 			}
 			else if (c == ']') {
-				if (!stack.trim().equals("")) {
+				if (!stack.trim().equals("") && !stack.trim().equals(",")) {
 					// add the current stack to the current list
 					list.add(stack.trim());
 					stack = "";
 				}
-				break;
-			}
-			else if (c == ',') {
-				// pass
+				break; // end of the current list
 			}
 			else {
 				stack += c;
