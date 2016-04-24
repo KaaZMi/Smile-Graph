@@ -7,6 +7,7 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 import java.util.Observable;
@@ -40,6 +41,7 @@ import org.graphstream.ui.view.ViewerListener;
 import org.graphstream.ui.view.ViewerPipe;
 
 import controler.Controler;
+import model.Formula;
 import model.Model;
 import model.ScenarioEvent;
 
@@ -152,7 +154,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 						}
 						for (Node node : graph) {
 							node.addAttribute("ui.label", node.getId());
-							node.addAttribute("memory", new LinkedHashMap<String,ArrayList>());
+							node.addAttribute("memory", new LinkedHashMap<Integer,Formula>());
 						}
 	
 						viewer = new Viewer(graph, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
@@ -381,7 +383,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 								 */
 								if(!sprite.move()) {
 									// TODO : gérer ce qu'il se passe sur le noeud de destination
-									//updateNode(model.getEvents().get(cursor));
+									updateNode(model.getEvents().get(cursor));
 									
 									controler.incrementCursor();
 									sman.removeSprite(sprite.getId());
@@ -611,18 +613,49 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	 * Update of a node according to information that reached it
 	 */
 	private void updateNode(ScenarioEvent se) {
-		// TODO : mettre un flag aux hypothèses pour la confirmation ou non
-		Node node = graph.getNode(se.getDestination());
+		Node node = null;
+		LinkedHashMap<Integer,Formula> memory = null;
+		
 		if (se.getType().contains("Hypothese a tester")) {
-			LinkedHashMap<String,ArrayList> memory = node.getAttribute("memory");
-			for (Object formula : se.getFormulas()) {
-				// check if memory contains this formula
-				System.out.println(formula);
+			node = graph.getNode(se.getDestination());
+			memory = node.getAttribute("memory");
+			for (Formula formula : se.getFormulas()) {
+				if (!memory.containsValue(formula)) {
+					Iterator<Entry<Integer, Formula>> iterator = memory.entrySet().iterator();
+					int lastKey = 0;
+					// search for the key of the last entry
+				    while (iterator.hasNext()) {
+				        lastKey = iterator.next().getKey();
+				    }
+				    int key = lastKey + 1;
+				    memory.put(key, formula);
+				}
 			}
-			
+			node.setAttribute("memory", memory);
 		}
-//		ArrayList<Object> test = node.getAttribute("memory");
-//		System.out.println(test);
+		
+		else if (se.getType().contains("Hypothese confirmee")) {
+			node = graph.getNode(se.getSource());
+			memory = node.getAttribute("memory");
+			for (Formula formula : se.getFormulas()) {
+				for (Entry<Integer, Formula> entry : memory.entrySet()) {
+			        if (entry.getValue().equals(formula)) {
+			        	// update the entry by putting the same formula but this time accepted
+			            memory.put(entry.getKey(), new Formula(formula.getContent(),true));
+			        }
+			    }
+			}
+			node.setAttribute("memory", memory);
+		}
+		
+		// DEV
+//		node.setAttribute("memory", memory);
+//		
+//		System.out.println("NODE : " + node.getId() + "********");
+//		for (Entry<Integer, Formula> entry : memory.entrySet()) {
+//	        System.out.println(memory.get(entry.getKey()));
+//	    }
+//		System.out.println("***********************************");
 	}
 	
 	public void setDisplay(String s) {

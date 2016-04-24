@@ -8,7 +8,7 @@ public class ScenarioEvent {
 	private String destination;
 	private String type;
 	private String content;
-	private ArrayList<Object> formulas = new ArrayList<Object>();
+	private ArrayList<Formula> formulas = new ArrayList<Formula>();
 
 	public String getColor() {
 		return color;
@@ -62,11 +62,11 @@ public class ScenarioEvent {
 		Object level_2 = ((ArrayList<Object>) level_1).get(1);
 		for (int i = 0 ; i<((ArrayList<Object>) level_2).size() ; i+=3) {
 			Object formula = ((ArrayList<Object>) level_2).get(i);
-			this.formulas.add(formula);
+			this.formulas.add(new Formula(formula));
 		}
 	}
 	
-	public ArrayList<Object> getFormulas() {
+	public ArrayList<Formula> getFormulas() {
 		return formulas;
 	}
 
