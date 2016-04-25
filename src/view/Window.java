@@ -637,9 +637,10 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		else if (se.getType().contains("Hypothese confirmee")) {
 			node = graph.getNode(se.getSource());
 			memory = node.getAttribute("memory");
+			// looking for the formula in the memory
 			for (Formula formula : se.getFormulas()) {
 				for (Entry<Integer, Formula> entry : memory.entrySet()) {
-			        if (entry.getValue().equals(formula)) {
+			        if (entry.getValue().compareTo(formula)) {
 			        	// update the entry by putting the same formula but this time accepted
 			            memory.put(entry.getKey(), new Formula(formula.getContent(),true));
 			        }
@@ -649,13 +650,14 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		}
 		
 		// DEV
-//		node.setAttribute("memory", memory);
-//		
-//		System.out.println("NODE : " + node.getId() + "********");
-//		for (Entry<Integer, Formula> entry : memory.entrySet()) {
-//	        System.out.println(memory.get(entry.getKey()));
-//	    }
-//		System.out.println("***********************************");
+		if (node != null) {
+			System.out.println("NODE : " + node.getId() + "********");
+			for (Entry<Integer, Formula> entry : memory.entrySet()) {
+		        System.out.println(memory.get(entry.getKey()));
+		    }
+			System.out.println("***********************************");
+		}
+		
 	}
 	
 	public void setDisplay(String s) {

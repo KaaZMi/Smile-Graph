@@ -34,5 +34,9 @@ public class Formula {
 	public String toString() {
 		return "Formula [content=" + content + ", accepted=" + accepted + "]";
 	}
+	
+	public boolean compareTo(Formula formula) {
+		return this.content.equals(formula.getContent());
+	}
 
 }
