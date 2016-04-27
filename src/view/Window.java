@@ -619,17 +619,24 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		if (se.getType().contains("Hypothese a tester")) {
 			node = graph.getNode(se.getDestination());
 			memory = node.getAttribute("memory");
+			/*
+			 * For each formula of the message, we will see if the memory contains the formula.
+			 * If not, the formula is added to the memory by putting it at the end of the memory.
+			 */
 			for (Formula formula : se.getFormulas()) {
-				if (!memory.containsValue(formula)) {
-					Iterator<Entry<Integer, Formula>> iterator = memory.entrySet().iterator();
-					int lastKey = 0;
-					// search for the key of the last entry
-				    while (iterator.hasNext()) {
-				        lastKey = iterator.next().getKey();
-				    }
-				    int key = lastKey + 1;
-				    memory.put(key, formula);
-				}
+				Iterator<Entry<Integer, Formula>> iterator = memory.entrySet().iterator();
+				int lastKey = 0;
+				boolean formula_already_memorised = false;
+			    while (iterator.hasNext()) {
+			        lastKey = iterator.next().getKey();
+			        if (formula.getContent().equals(memory.get(lastKey).getContent())) {
+			        	formula_already_memorised = true;
+			        }
+			    }
+			    
+			    if (!formula_already_memorised) {
+			    	memory.put(lastKey + 1, formula);
+			    }
 			}
 			node.setAttribute("memory", memory);
 		}
