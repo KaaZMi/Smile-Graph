@@ -101,6 +101,7 @@ public class Model extends Observable {
 			
 			int loop = 0; // DEV
 			String color = null;
+			String shape = null;
 			boolean etudier_cette_ligne = false;
 
 			// tant qu'une ligne non vide est lisible
@@ -117,29 +118,31 @@ public class Model extends Observable {
 					// TODO traiter les différents type de messages (couleur à donner, ...)
 					etudier_cette_ligne = false;
 					color = "black";
+					shape = "circle";
 					if (parts[1].contains("Nouveaux Exemples")) {
 						etudier_cette_ligne = true;
-						color = "red";
+						color = "blue";
+						shape = "rounded-box";
 					}
 					else if (parts[1].contains("Hypothese a tester")) {
 						etudier_cette_ligne = true;
-						color = "blue";
+						color = "yellow";
+						shape = "circle";
 					}
 					else if (parts[1].contains("Hypothese SMA-consistante")) {
 						etudier_cette_ligne = true;
 						color = "purple";
+						shape = "diamond";
 					}
 					else if (parts[1].contains("Contre Exemples")) {
 						etudier_cette_ligne = true;
-						color = "yellow";
+						color = "red";
+						shape = "cross";
 					}
-					else if (parts[1].contains("Nouvelle Hypothese a tester")) {
+					else if (parts[1].contains("Hypothese confirmee")) {
 						etudier_cette_ligne = true;
 						color = "green";
-					}
-					else if (parts[1].contains("Message de")) {
-						etudier_cette_ligne = true;
-						color = "orange";
+						shape = "circle";
 					}
 					else {
 						// aucun des cas précédents n'est vérifié donc la ligne courante ne nous intéressent pas
@@ -152,6 +155,7 @@ public class Model extends Observable {
 						
 						ScenarioEvent scenario_event = new ScenarioEvent();
 						scenario_event.setColor(color);
+						scenario_event.setShape(shape);
 						scenario_event.setSource(agents[0].trim().replaceAll("[^\\d.]", ""));
 						scenario_event.setDestination(agents[1].trim().replaceAll("[^\\d.]", ""));
 						scenario_event.setType(parts[1].trim());
@@ -168,10 +172,10 @@ public class Model extends Observable {
 					}
 
 					// DEV : juste pour pas lire tout le fichier
-					loop++;
-					if (loop>225){
-						break;
-					}
+//					loop++;
+//					if (loop>225){
+//						break;
+//					}
 				}
 			}
 

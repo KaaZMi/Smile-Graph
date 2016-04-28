@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 public class ScenarioEvent {
 	private String color;
+	private String shape;
 	private String source;
 	private String destination;
 	private String type;
@@ -16,6 +17,14 @@ public class ScenarioEvent {
 	
 	public void setColor(String color) {
 		this.color = color;
+	}
+	
+	public String getShape() {
+		return shape;
+	}
+
+	public void setShape(String shape) {
+		this.shape = shape;
 	}
 	
 	public String getSource() {

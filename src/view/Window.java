@@ -143,7 +143,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 						graph.setAutoCreate(true); // automatic creation of nodes depending edges
 						graph.addAttribute("ui.antialias"); // graphics smoothing
 						graph.addAttribute("ui.quality");
-						graph.addAttribute("ui.stylesheet", styleSheet); // CSS style of the graph
+						graph.addAttribute("ui.stylesheet", STYLESHEET); // CSS style of the graph
 						sman = new SpriteManager(graph);
 						sman.setSpriteFactory(new mySpritesFactory());
 	
@@ -154,6 +154,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 						}
 						for (Node node : graph) {
 							node.addAttribute("ui.label", node.getId());
+							node.addAttribute("ui.size", "25");
 							node.addAttribute("memory", new LinkedHashMap<Integer,Formula>());
 						}
 	
@@ -610,15 +611,12 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	}
 	
 	/**
-	 * Update of a node according to information that reached it
+	 * Update of a node according to information that reached it.
 	 */
 	private void updateNode(ScenarioEvent se) {
-		Node node = null;
-		LinkedHashMap<Integer,Formula> memory = null;
-		
 		if (se.getType().contains("Hypothese a tester")) {
-			node = graph.getNode(se.getDestination());
-			memory = node.getAttribute("memory");
+			Node node_destination = graph.getNode(se.getDestination());
+			LinkedHashMap<Integer,Formula> memory = node_destination.getAttribute("memory");
 			/*
 			 * For each formula of the message, we will see if the memory contains the formula.
 			 * If not, the formula is added to the memory by putting it at the end of the memory.
@@ -638,12 +636,12 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			    	memory.put(lastKey + 1, formula);
 			    }
 			}
-			node.setAttribute("memory", memory);
+			node_destination.setAttribute("memory", memory);
 		}
 		
 		else if (se.getType().contains("Hypothese confirmee")) {
-			node = graph.getNode(se.getSource());
-			memory = node.getAttribute("memory");
+			Node node = graph.getNode(se.getSource());
+			LinkedHashMap<Integer,Formula> memory = node.getAttribute("memory");
 			// looking for the formula in the memory
 			for (Formula formula : se.getFormulas()) {
 				for (Entry<Integer, Formula> entry : memory.entrySet()) {
@@ -656,14 +654,37 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			node.setAttribute("memory", memory);
 		}
 		
-		// DEV
-		if (node != null) {
-			System.out.println("NODE : " + node.getId() + "********");
-			for (Entry<Integer, Formula> entry : memory.entrySet()) {
-		        System.out.println(memory.get(entry.getKey()));
-		    }
-			System.out.println("***********************************");
+		else if (se.getType().contains("Hypothese SMA-consistante")) {
+			Node node_source = graph.getNode(se.getSource());
+			Node node_destination = graph.getNode(se.getDestination());
+			LinkedHashMap<Integer,Formula> memory_source = node_source.getAttribute("memory");
+			LinkedHashMap<Integer,Formula> memory_destination = node_destination.getAttribute("memory");
+			for (Formula formula : se.getFormulas()) {
+				for (Entry<Integer, Formula> entry : memory_source.entrySet()) {
+			        if (entry.getValue().compareTo(formula)) {
+			        	// update the entry by putting the same formula but this time consistent
+			        	memory_source.put(entry.getKey(), new Formula(formula.getContent(),true,true));
+			        }
+			    }
+				for (Entry<Integer, Formula> entry : memory_destination.entrySet()) {
+			        if (entry.getValue().compareTo(formula)) {
+			        	// update the entry by putting the same formula but this time consistent
+			        	memory_destination.put(entry.getKey(), new Formula(formula.getContent(),true,true));
+			        }
+			    }
+			}
+			node_source.setAttribute("memory", memory_source);
+			node_destination.setAttribute("memory", memory_destination);
 		}
+		
+		// DEV
+//		if (node != null) {
+//			System.out.println("NODE : " + node.getId() + "********");
+//			for (Entry<Integer, Formula> entry : memory.entrySet()) {
+//		        System.out.println(memory.get(entry.getKey()));
+//		    }
+//			System.out.println("***********************************");
+//		}
 		
 	}
 	
@@ -703,8 +724,14 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	/*
 	 *  Style
 	 */
+	
 	// TODO : il faudra mettre ça au propre dans un fichier peut-être
-	protected static String styleSheet =
+	static final String STYLESHEET = 
+			"graph {fill-mode:gradient-radial;fill-color:#FFFFFF,#EEEEEE;} "+
+			"edge {size:1.5px;shape:line;fill-color:#222222;fill-mode:dyn-plain;size-mode:dyn-size;} "+
+			"node {shape:circle;fill-mode:dyn-plain;fill-color:#fad15f;"+
+			"size-mode:dyn-size;size:15px;"+
+			"stroke-mode:plain;stroke-width:2px;stroke-color:#333333;}"+
 			"sprite.red {"+
 			"	fill-color: red;"+
 			"}"+
@@ -725,32 +752,61 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			"}"+
 			"sprite {"+
 			"	shape: circle;"+
-			"	size: 10px;"+
+			"	size: 20px;"+
 			"	fill-mode: plain;"+
 			"	fill-color: black;"+
-			"	stroke-mode: none;"+
+			"	stroke-mode:plain;stroke-width:2px;stroke-color:#333333;"+
 			"	z-index: 4;"+
-			"}"+
-			"graph {"+
-			"	fill-mode: plain;"+
-			"	fill-color: white, gray;"+
-			"	padding: 60px;"+
-			"}"+
-			"node {"+
-			"	text-alignment: under;"+
-			"	text-color: black;"+
-			"	size-mode: dyn-size;"+
-			"	size: 15px;"+
-			"	fill-color: black;"+
-			"	fill-mode: dyn-plain;"+
-			"}"+
-			"edge {"+
-			"	size: 1px;"+
-			"	shape: line;"+
-			"	fill-color: grey;"+
-			"	fill-mode: plain;"+
-			"	stroke-mode: none;"+
 			"}"
 	;
+	
+//	protected static String styleSheet =
+//			"sprite.red {"+
+//			"	fill-color: red;"+
+//			"}"+
+//			"sprite.blue {"+
+//			"	fill-color: blue;"+
+//			"}"+
+//			"sprite.purple {"+
+//			"	fill-color: purple;"+
+//			"}"+
+//			"sprite.yellow {"+
+//			"	fill-color: yellow;"+
+//			"}"+
+//			"sprite.green {"+
+//			"	fill-color: green;"+
+//			"}"+
+//			"sprite.orange {"+
+//			"	fill-color: orange;"+
+//			"}"+
+//			"sprite {"+
+//			"	shape: circle;"+
+//			"	size: 10px;"+
+//			"	fill-mode: plain;"+
+//			"	fill-color: black;"+
+//			"	stroke-mode: none;"+
+//			"	z-index: 4;"+
+//			"}"+
+//			"graph {"+
+//			"	fill-mode: plain;"+
+//			"	fill-color: white, gray;"+
+//			"	padding: 60px;"+
+//			"}"+
+//			"node {"+
+//			"	text-alignment: under;"+
+//			"	text-color: black;"+
+//			"	size-mode: dyn-size;"+
+//			"	size: 15px;"+
+//			"	fill-color: black;"+
+//			"	fill-mode: dyn-plain;"+
+//			"}"+
+//			"edge {"+
+//			"	size: 1px;"+
+//			"	shape: line;"+
+//			"	fill-color: grey;"+
+//			"	fill-mode: plain;"+
+//			"	stroke-mode: none;"+
+//			"}"
+//	;
 
 }
