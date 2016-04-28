@@ -4,6 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -27,7 +29,10 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.JToolBar;
+import javax.swing.border.EmptyBorder;
 
 import org.graphstream.graph.*;
 import org.graphstream.graph.implementations.MultiGraph;
@@ -68,6 +73,9 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	private JPanel side_panel = null;
 	private JFileChooser fileChooser = null;
 	private JLabel display = new JLabel();
+	private JTextField node_field = null;
+	private JButton node_button = null;
+	private JTextArea node_data = null;
 	
 	private JButton prevButton = null;
 	private JButton play_pauseButton = null;
@@ -108,10 +116,12 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		getContentPane().setLayout(new BorderLayout()); // choosing the layout manager
 		
 		side_panel = new JPanel();
+		side_panel.setBorder(new EmptyBorder(10, 10, 10, 10));
+		side_panel.setLayout(new GridBagLayout());
 		side_panel.setPreferredSize(new Dimension(300, container.getHeight()));
+		
 		String html = "<html>\n"
                   + "<body>\n"
-                  + "<h1>Details</h1>\n"
                   + "<h2>Graph ?</h2>\n"
                   + "<p>" + model.isGraphLoaded() + "</p>\n"
                   + "<h2>Scenario ?</h2>\n"
@@ -121,7 +131,58 @@ public class Window extends JFrame implements Observer, ViewerListener {
                   + "</body>\n"
                   + "</html>";
 		setDisplay(html);
-		side_panel.add(display);
+		
+		node_field = new JTextField();
+		node_button = new JButton("Get info");
+		node_data = new JTextArea();
+		node_data.setEditable(false);
+		node_data.setLineWrap(true);
+		node_button.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent arg0){
+				node_data.setText(getNodeInfoByID(node_field.getText()));
+				container.revalidate();
+			}
+		});
+		
+		GridBagConstraints c = null;
+		
+		c = new GridBagConstraints();
+		c.gridx = 0;
+		c.gridy = 0;
+		c.gridwidth = 3;
+	    c.fill = GridBagConstraints.HORIZONTAL;
+		side_panel.add(display, c);
+		
+		c = new GridBagConstraints();
+		c.gridx = 0;
+		c.gridy = 2;
+		c.gridwidth = 1;
+		c.fill = GridBagConstraints.NONE;
+		c.weightx = 0;
+		side_panel.add(new JLabel("Node : "), c);
+		
+		c = new GridBagConstraints();
+		c.gridx = 1;
+		c.gridy = 2;
+		c.gridwidth = 1;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.weightx = 1.0;
+		side_panel.add(node_field, c);
+		
+		c = new GridBagConstraints();
+		c.gridx = 2;
+		c.gridy = 2;
+		c.gridwidth = 1;
+		c.fill = GridBagConstraints.NONE;
+		c.weightx = 0;
+		side_panel.add(node_button, c);
+		
+		c = new GridBagConstraints();
+		c.gridx = 0;
+		c.gridy = 3;
+		c.gridwidth = 3;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		side_panel.add(node_data, c);
 		
 		container.add(side_panel, BorderLayout.EAST);
 	}
@@ -588,16 +649,12 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	public void update(Observable obs, Object obj) {
 		String html = "<html>\n"
                 + "<body>\n"
-                + "<h1>Details</h1>\n"
                 + "<h2>Graph ?</h2>\n"
                 + "<p>" + model.isGraphLoaded() + "</p>\n"
                 + "<h2>Scenario ?</h2>\n"
                 + "<p>" + model.isScenarioLoaded() + "</p>\n"
                 + "<h2>Number of agents</h2>\n"
                 + "<p>" + model.getNbAgents() + "</p>\n"
-        		+ "<h1>Event</h1>\n"
-                + "<h2>Type</h2>\n"
-                + "<p>blabla</p>\n"
                 + "</body>\n"
                 + "</html>";
 		setDisplay(html);
@@ -686,6 +743,16 @@ public class Window extends JFrame implements Observer, ViewerListener {
 //			System.out.println("***********************************");
 //		}
 		
+	}
+	
+	public String getNodeInfoByID(String node_id) {
+		Node n = graph.getNode(node_id);
+		LinkedHashMap<Integer,Formula> memory = n.getAttribute("memory");
+		String node_info = "";
+		for (Entry<Integer, Formula> entry : memory.entrySet()) {
+			node_info += entry.getValue().toString() + "\n";
+	    }
+		return node_info;
 	}
 	
 	public void setDisplay(String s) {
