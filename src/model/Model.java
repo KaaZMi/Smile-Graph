@@ -100,8 +100,7 @@ public class Model extends Observable {
 			String line = null;
 			
 			int loop = 0; // DEV
-			String color = null;
-			String shape = null;
+			String css_class = null;
 			boolean etudier_cette_ligne = false;
 
 			// tant qu'une ligne non vide est lisible
@@ -117,32 +116,26 @@ public class Model extends Observable {
 
 					// TODO traiter les différents type de messages (couleur à donner, ...)
 					etudier_cette_ligne = false;
-					color = "black";
-					shape = "circle";
+					css_class = "";
 					if (parts[1].contains("Nouveaux Exemples")) {
 						etudier_cette_ligne = true;
-						color = "blue";
-						shape = "rounded-box";
+						css_class = "new_examples";
 					}
 					else if (parts[1].contains("Hypothese a tester")) {
 						etudier_cette_ligne = true;
-						color = "yellow";
-						shape = "circle";
+						css_class = "hypothesis_test";
 					}
 					else if (parts[1].contains("Hypothese SMA-consistante")) {
 						etudier_cette_ligne = true;
-						color = "purple";
-						shape = "diamond";
+						css_class = "hypothesis_const";
 					}
 					else if (parts[1].contains("Contre Exemples")) {
 						etudier_cette_ligne = true;
-						color = "red";
-						shape = "cross";
+						css_class = "counter_examples";
 					}
 					else if (parts[1].contains("Hypothese confirmee")) {
 						etudier_cette_ligne = true;
-						color = "green";
-						shape = "circle";
+						css_class = "hypothesis_accept";
 					}
 					else {
 						// aucun des cas précédents n'est vérifié donc la ligne courante ne nous intéressent pas
@@ -154,8 +147,7 @@ public class Model extends Observable {
 						String[] agents = parts[0].trim().split("->");
 						
 						ScenarioEvent scenario_event = new ScenarioEvent();
-						scenario_event.setColor(color);
-						scenario_event.setShape(shape);
+						scenario_event.setCSSClass(css_class);
 						scenario_event.setSource(agents[0].trim().replaceAll("[^\\d.]", ""));
 						scenario_event.setDestination(agents[1].trim().replaceAll("[^\\d.]", ""));
 						scenario_event.setType(parts[1].trim());

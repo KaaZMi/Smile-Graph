@@ -410,7 +410,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 								sprite.attachToEdge(edge_id);
 								sprite.setPosition(pos);
 								sprite.setDirection(direction);
-								sprite.addAttribute("ui.class", model.getEvents().get(cursor).getColor());
+								sprite.setAttribute("ui.class", model.getEvents().get(cursor).getCSSClass());
 							}
 							else {
 								/*
@@ -444,7 +444,6 @@ public class Window extends JFrame implements Observer, ViewerListener {
 								 * until it returns false.
 								 */
 								if(!sprite.move()) {
-									// TODO : gérer ce qu'il se passe sur le noeud de destination
 									updateNode(model.getEvents().get(cursor));
 									
 									controler.incrementCursor();
@@ -473,8 +472,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 									sprite.attachToEdge(edge_id);
 									sprite.setPosition(pos);
 									sprite.setDirection(direction);
-									sprite.addAttribute("ui.class", model.getEvents().get(cursor).getColor());
-								}
+									sprite.setAttribute("ui.class", model.getEvents().get(cursor).getCSSClass());								}
 								
 								try {
 									Thread.sleep(speed);
@@ -546,7 +544,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 							sprite.attachToEdge(edge_id);
 							sprite.setPosition(pos);
 							sprite.setDirection(direction);
-							sprite.addAttribute("ui.class", model.getEvents().get(cursor).getColor());
+							sprite.setAttribute("ui.class", model.getEvents().get(cursor).getCSSClass());
 						}
 						else {
 							/*
@@ -578,8 +576,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 							 * until it returns false.
 							 */
 							if(!sprite.move()) {
-								// TODO : gérer ce qu'il se passe sur le noeud de destination
-								
+								updateNode(model.getEvents().get(cursor));
 								controler.incrementCursor();
 								sman.removeSprite(sprite.getId());
 								break;
@@ -792,88 +789,54 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	 *  Style
 	 */
 	
-	// TODO : il faudra mettre ça au propre dans un fichier peut-être
 	static final String STYLESHEET = 
-			"graph {fill-mode:gradient-radial;fill-color:#FFFFFF,#EEEEEE;} "+
-			"edge {size:1.5px;shape:line;fill-color:#222222;fill-mode:dyn-plain;size-mode:dyn-size;} "+
-			"node {shape:circle;fill-mode:dyn-plain;fill-color:#fad15f;"+
-			"size-mode:dyn-size;size:15px;"+
-			"stroke-mode:plain;stroke-width:2px;stroke-color:#333333;}"+
-			"sprite.red {"+
-			"	fill-color: red;"+
-			"}"+
-			"sprite.blue {"+
-			"	fill-color: blue;"+
-			"}"+
-			"sprite.purple {"+
-			"	fill-color: purple;"+
-			"}"+
-			"sprite.yellow {"+
-			"	fill-color: yellow;"+
-			"}"+
-			"sprite.green {"+
-			"	fill-color: green;"+
-			"}"+
-			"sprite.orange {"+
-			"	fill-color: orange;"+
-			"}"+
-			"sprite {"+
+			"graph {"+
+			"	fill-mode: gradient-radial;"+
+			"	fill-color: #FFFFFF,#EEEEEE;"+
+			"} "+
+			"edge {"+
+			"	size: 1.5px;"+
+			"	shape: line;"+
+			"	fill-color: #222222;"+
+			"	fill-mode: dyn-plain;"+
+			"	size-mode: dyn-size;"+
+			"} "+
+			"node {"+
 			"	shape: circle;"+
+			"	fill-mode: dyn-plain;"+
+			"	fill-color: #fad15f;"+
+			"	size-mode: dyn-size;"+
+			"	size: 15px;"+
+			"	stroke-mode: plain;"+
+			"	stroke-width: 2px;"+
+			"	stroke-color: #333333;}"+
+			"sprite {"+
 			"	size: 20px;"+
 			"	fill-mode: plain;"+
-			"	fill-color: black;"+
-			"	stroke-mode:plain;stroke-width:2px;stroke-color:#333333;"+
+			"	stroke-mode: plain;"+
+			"	stroke-width: 2px;"+
+			"	stroke-color: #333333;"+
 			"	z-index: 4;"+
+			"}"+
+			"sprite.hypothesis_test {"+
+			"	fill-color: white;"+
+			"}"+
+			"sprite.hypothesis_accept {"+
+			"	fill-color: white;"+
+			"	stroke-color: green;"+
+			"}"+
+			"sprite.hypothesis_const {"+
+			"	fill-color: white;"+
+			"	stroke-color: purple;"+
+			"}"+
+			"sprite.new_examples {"+
+			"	fill-color: blue;"+
+			"	shape: rounded-box;"+
+			"}"+
+			"sprite.counter_examples {"+
+			"	fill-color: red;"+
+			"	shape: cross;"+
 			"}"
 	;
-	
-//	protected static String styleSheet =
-//			"sprite.red {"+
-//			"	fill-color: red;"+
-//			"}"+
-//			"sprite.blue {"+
-//			"	fill-color: blue;"+
-//			"}"+
-//			"sprite.purple {"+
-//			"	fill-color: purple;"+
-//			"}"+
-//			"sprite.yellow {"+
-//			"	fill-color: yellow;"+
-//			"}"+
-//			"sprite.green {"+
-//			"	fill-color: green;"+
-//			"}"+
-//			"sprite.orange {"+
-//			"	fill-color: orange;"+
-//			"}"+
-//			"sprite {"+
-//			"	shape: circle;"+
-//			"	size: 10px;"+
-//			"	fill-mode: plain;"+
-//			"	fill-color: black;"+
-//			"	stroke-mode: none;"+
-//			"	z-index: 4;"+
-//			"}"+
-//			"graph {"+
-//			"	fill-mode: plain;"+
-//			"	fill-color: white, gray;"+
-//			"	padding: 60px;"+
-//			"}"+
-//			"node {"+
-//			"	text-alignment: under;"+
-//			"	text-color: black;"+
-//			"	size-mode: dyn-size;"+
-//			"	size: 15px;"+
-//			"	fill-color: black;"+
-//			"	fill-mode: dyn-plain;"+
-//			"}"+
-//			"edge {"+
-//			"	size: 1px;"+
-//			"	shape: line;"+
-//			"	fill-color: grey;"+
-//			"	fill-mode: plain;"+
-//			"	stroke-mode: none;"+
-//			"}"
-//	;
 
 }

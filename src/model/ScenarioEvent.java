@@ -3,28 +3,19 @@ package model;
 import java.util.ArrayList;
 
 public class ScenarioEvent {
-	private String color;
-	private String shape;
+	private String css_class;
 	private String source;
 	private String destination;
 	private String type;
 	private String content;
 	private ArrayList<Formula> formulas = new ArrayList<Formula>();
 
-	public String getColor() {
-		return color;
+	public String getCSSClass() {
+		return css_class;
 	}
 	
-	public void setColor(String color) {
-		this.color = color;
-	}
-	
-	public String getShape() {
-		return shape;
-	}
-
-	public void setShape(String shape) {
-		this.shape = shape;
+	public void setCSSClass(String css_class) {
+		this.css_class = css_class;
 	}
 	
 	public String getSource() {
@@ -58,12 +49,6 @@ public class ScenarioEvent {
 	public void setContent(String content) {
 		this.content = content;
 	}
-	
-	@Override
-	public String toString() {
-		return "ScenarioEvent [color=" + color + ", source=" + source + ", destination=" + destination + ", type="
-				+ type + ", content=" + content + "]";
-	}
 
 	@SuppressWarnings("unchecked")
 	public void parseContent(ArrayList<Object> content) {
@@ -77,6 +62,12 @@ public class ScenarioEvent {
 	
 	public ArrayList<Formula> getFormulas() {
 		return formulas;
+	}
+
+	@Override
+	public String toString() {
+		return "ScenarioEvent [css_class=" + css_class + ", source=" + source + ", destination="
+				+ destination + ", type=" + type + ", content=" + content + ", formulas=" + formulas + "]";
 	}
 
 }
