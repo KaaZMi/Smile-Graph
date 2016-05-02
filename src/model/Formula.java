@@ -1,6 +1,7 @@
 package model;
 
 public class Formula {
+	private int num;
 	private String content;
 	private boolean accepted;
 	private boolean consistant;
@@ -20,6 +21,14 @@ public class Formula {
 		setContent(formula.toString());
 		setAccepted(accepted);
 		setConsistant(consistent);
+	}
+
+	public int getNum() {
+		return num;
+	}
+
+	public void setNum(int num) {
+		this.num = num;
 	}
 
 	public String getContent() {
@@ -52,7 +61,7 @@ public class Formula {
 
 	@Override
 	public String toString() {
-		return "Formula [content=" + content + ", accepted=" + accepted + ", consistant=" + consistant + "]";
+		return "Formula [num=" + num + ", content=" + content + ", accepted=" + accepted + ", consistant=" + consistant + "]";
 	}
 
 }

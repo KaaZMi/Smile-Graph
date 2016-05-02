@@ -7,7 +7,7 @@ public class ScenarioEvent {
 	private String source;
 	private String destination;
 	private String type;
-	private String content;
+	private int group;
 	private ArrayList<Formula> formulas = new ArrayList<Formula>();
 
 	public String getCSSClass() {
@@ -42,32 +42,26 @@ public class ScenarioEvent {
 		this.type = type;
 	}
 	
-	public String getContent() {
-		return content;
-	}
-	
-	public void setContent(String content) {
-		this.content = content;
+	public int getGroup() {
+		return group;
 	}
 
-	@SuppressWarnings("unchecked")
-	public void parseContent(ArrayList<Object> content) {
-		Object level_1 = (ArrayList<Object>) content.get(0);
-		Object level_2 = ((ArrayList<Object>) level_1).get(1);
-		for (int i = 0 ; i<((ArrayList<Object>) level_2).size() ; i+=3) {
-			Object formula = ((ArrayList<Object>) level_2).get(i);
-			this.formulas.add(new Formula(formula));
-		}
+	public void setGroup(int group) {
+		this.group = group;
 	}
 	
 	public ArrayList<Formula> getFormulas() {
 		return formulas;
 	}
+	
+	public void setFormulas(ArrayList<Formula> formulas) {
+		this.formulas = formulas;
+	}
 
 	@Override
 	public String toString() {
 		return "ScenarioEvent [css_class=" + css_class + ", source=" + source + ", destination="
-				+ destination + ", type=" + type + ", content=" + content + ", formulas=" + formulas + "]";
+				+ destination + ", type=" + type + ", group=" + group + ", formulas=" + formulas + "]";
 	}
 
 }

@@ -411,6 +411,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 								sprite.setPosition(pos);
 								sprite.setDirection(direction);
 								sprite.setAttribute("ui.class", model.getEvents().get(cursor).getCSSClass());
+								sprite.setAttribute("ui.label", model.getEvents().get(cursor).getGroup());
 							}
 							else {
 								/*
@@ -472,7 +473,9 @@ public class Window extends JFrame implements Observer, ViewerListener {
 									sprite.attachToEdge(edge_id);
 									sprite.setPosition(pos);
 									sprite.setDirection(direction);
-									sprite.setAttribute("ui.class", model.getEvents().get(cursor).getCSSClass());								}
+									sprite.setAttribute("ui.class", model.getEvents().get(cursor).getCSSClass());
+									sprite.setAttribute("ui.label", model.getEvents().get(cursor).getGroup());
+								}
 								
 								try {
 									Thread.sleep(speed);
@@ -545,6 +548,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 							sprite.setPosition(pos);
 							sprite.setDirection(direction);
 							sprite.setAttribute("ui.class", model.getEvents().get(cursor).getCSSClass());
+							sprite.setAttribute("ui.label", model.getEvents().get(cursor).getGroup());
 						}
 						else {
 							/*
@@ -681,7 +685,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				boolean formula_already_memorised = false;
 			    while (iterator.hasNext()) {
 			        lastKey = iterator.next().getKey();
-			        if (formula.getContent().equals(memory.get(lastKey).getContent())) {
+			        if (memory.get(lastKey).compareTo(formula)) {
 			        	formula_already_memorised = true;
 			        }
 			    }

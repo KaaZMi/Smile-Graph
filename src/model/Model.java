@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Observable;
+import java.util.Map.Entry;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -21,6 +22,7 @@ public class Model extends Observable {
 
 	private LinkedHashMap<String, ArrayList<String>> edges = new LinkedHashMap<String, ArrayList<String>>();
 	private ArrayList<ScenarioEvent> events = new ArrayList<ScenarioEvent>();
+	private LinkedHashMap<Integer, Formula> unique_hyp = new LinkedHashMap<Integer, Formula>();
 	private int cursor = 0; // current position of the scenario
 	
 	private boolean graphLoaded = false;
@@ -102,6 +104,8 @@ public class Model extends Observable {
 			int loop = 0; // DEV
 			String css_class = null;
 			boolean etudier_cette_ligne = false;
+			ArrayList<Formula> previous_formulas = new ArrayList<Formula>();
+			int group = 0;
 
 			// tant qu'une ligne non vide est lisible
 			while (((line = br.readLine()) != null) && !("".equals(line))) {
@@ -115,26 +119,21 @@ public class Model extends Observable {
 					String[] parts = line.split(":");
 
 					// TODO traiter les différents type de messages (couleur à donner, ...)
-					etudier_cette_ligne = false;
+					etudier_cette_ligne = true;
 					css_class = "";
 					if (parts[1].contains("Nouveaux Exemples")) {
-						etudier_cette_ligne = true;
 						css_class = "new_examples";
 					}
 					else if (parts[1].contains("Hypothese a tester")) {
-						etudier_cette_ligne = true;
 						css_class = "hypothesis_test";
 					}
 					else if (parts[1].contains("Hypothese SMA-consistante")) {
-						etudier_cette_ligne = true;
 						css_class = "hypothesis_const";
 					}
 					else if (parts[1].contains("Contre Exemples")) {
-						etudier_cette_ligne = true;
 						css_class = "counter_examples";
 					}
 					else if (parts[1].contains("Hypothese confirmee")) {
-						etudier_cette_ligne = true;
 						css_class = "hypothesis_accept";
 					}
 					else {
@@ -153,23 +152,60 @@ public class Model extends Observable {
 						scenario_event.setType(parts[1].trim());
 						// if the event has a content
 						if (parts.length > 2) {
-							scenario_event.setContent(parts[2].trim());
 							ArrayList<Object> content = buildList(parts[2].trim());
-							scenario_event.parseContent(content);
+							ArrayList<Formula> formulas = parseContent(content);
+							/*
+							 * We wish to number each hypothesis, so we are fulfilling 
+							 * a unique values map.
+							 */
+							/*if (parts[1].contains("Hypothese a tester") || parts[1].contains("Hypothese confirmee") || parts[1].contains("Hypothese SMA-consistante")) {
+								int num = 0;
+								for (Formula f : formulas) {
+									boolean formula_already_viewed = false;
+									for (Entry<Integer, Formula> entry : unique_hyp.entrySet()) {
+								        if (entry.getValue().compareTo(f)) {
+								        	formula_already_viewed = true;
+								        	f.setNum(num); // same number as the hypothesis found
+								        }
+								        num++;
+								    }
+									
+									if (!formula_already_viewed) {
+										num = unique_hyp.size();
+										unique_hyp.put(num, f);
+										f.setNum(num); // new number
+								    }
+								}
+							}*/
+							
+							scenario_event.setFormulas(formulas);
+							
+							// compare the formulas of this event to the formulas of the previous event
+							if (!compareFormulas(formulas, previous_formulas)) {
+								group++;
+								previous_formulas = formulas;
+							}
+							
+							scenario_event.setGroup(group);
+							
 							str_index = 0;
 						}
 
-						// add the current event to the map
-						this.events.add(scenario_event);
+						this.events.add(scenario_event); // add the current event to the map
 					}
 
 					// DEV : juste pour pas lire tout le fichier
-//					loop++;
-//					if (loop>225){
-//						break;
-//					}
+					loop++;
+					if (loop>225){
+						break;
+					}
 				}
 			}
+			
+			// DEV : vérifier la numérotation
+//			for (ScenarioEvent event : events) {
+//				System.out.println(event.toString());
+//		    }
 
 			br.close();
 		}
@@ -217,6 +253,37 @@ public class Model extends Observable {
 		}
 		
 	    return list;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public ArrayList<Formula> parseContent(ArrayList<Object> content) {
+		Object level_1 = (ArrayList<Object>) content.get(0);
+		Object level_2 = ((ArrayList<Object>) level_1).get(1);
+		ArrayList<Formula> formulas = new ArrayList<Formula>();
+		
+		for (int i = 0 ; i<((ArrayList<Object>) level_2).size() ; i+=3) {
+			Object formula = ((ArrayList<Object>) level_2).get(i);
+			formulas.add(new Formula(formula));
+		}
+		
+		return formulas;
+	}
+	
+	public boolean compareFormulas(ArrayList<Formula> formulas1, ArrayList<Formula> formulas2) {
+		int nb_equals = 0;
+		for (Formula f1 : formulas1) {
+			for (Formula f2 : formulas2) {
+				if (f1.compareTo(f2)) {
+					nb_equals++;
+				}	
+			}	
+		}
+		
+		if (nb_equals*2 == formulas1.size()+formulas2.size()) {
+			return true;
+		}
+		
+		return false;
 	}
 	
 	public LinkedHashMap<String, ArrayList<String>> getEdges() {
