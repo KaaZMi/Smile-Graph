@@ -214,9 +214,9 @@ public class Window extends JFrame implements Observer, ViewerListener {
 							graph.addEdge(entry.getKey(), entry.getValue().get(0), entry.getValue().get(1), false);
 						}
 						for (Node node : graph) {
-							node.addAttribute("ui.label", node.getId());
-							node.addAttribute("ui.size", "25");
-							node.addAttribute("memory", new LinkedHashMap<Integer,Formula>());
+							node.setAttribute("ui.label", node.getId());
+							node.setAttribute("ui.size", "25");
+							node.setAttribute("memory", new LinkedHashMap<Integer,Formula>());
 						}
 	
 						viewer = new Viewer(graph, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
@@ -446,6 +446,9 @@ public class Window extends JFrame implements Observer, ViewerListener {
 								 */
 								if(!sprite.move()) {
 									updateNode(model.getEvents().get(cursor));
+									// DEV : pour voir taille mémoire noeud
+//									LinkedHashMap<Integer,Formula> memory = graph.getNode(model.getEvents().get(cursor).getDestination()).getAttribute("memory");
+//									System.out.println(j + " " + memory.size());
 									
 									controler.incrementCursor();
 									sman.removeSprite(sprite.getId());
@@ -610,6 +613,8 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			public void actionPerformed(ActionEvent e) {
 				prevButton.setEnabled(false);
 				stopButton.setEnabled(false);
+				play_pauseButton.setIcon(new ImageIcon("playback_play_icon&16.png"));
+				play = false;
 				
 				// it interrupts the waiting thread and throws the exception InterruptedException
 				scenario_execution.interrupt();
@@ -623,6 +628,11 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				// each sprite is removed
 				for(Sprite sprite: sman) {
 					sman.removeSprite(sprite.getId());
+				}
+				
+				// memory of the nodes is reset
+				for (Node node : graph) {
+					node.setAttribute("memory", new LinkedHashMap<Integer,Formula>());
 				}
 				
 				currently_moving = false;

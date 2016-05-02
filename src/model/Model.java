@@ -195,10 +195,10 @@ public class Model extends Observable {
 					}
 
 					// DEV : juste pour pas lire tout le fichier
-					loop++;
-					if (loop>225){
-						break;
-					}
+//					loop++;
+//					if (loop>225){
+//						break;
+//					}
 				}
 			}
 			
