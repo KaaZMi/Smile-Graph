@@ -14,6 +14,32 @@ public class mySprite extends Sprite {
 	public void setDirection(boolean direction) {
 		this.direction = direction;
 	}
+	
+	public void initEtat(String i, String j) {
+		if ( i.contains("System") || j.contains("System") ) {
+			if ( i.contains("System") ) {
+				this.setDirection(true);
+				this.setPosition(0);
+			}
+			else if ( j.contains("System") ) {
+				this.setDirection(false);
+				this.setPosition(1);
+			}
+		}
+		
+		else {
+			i = i.substring(i.length() - 1);
+			j = j.substring(j.length() - 1);
+			if (Integer.parseInt(i) < Integer.parseInt(j)) {
+				this.setDirection(true);
+				this.setPosition(0);
+			}
+			else {
+				this.setDirection(false);
+				this.setPosition(1);
+			}
+		}
+	}
 
 	/**
 	 * Move the sprite in the appropriate direction.

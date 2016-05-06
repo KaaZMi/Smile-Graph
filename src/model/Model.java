@@ -56,12 +56,12 @@ public class Model extends Observable {
 
 						// Edges' ID with dash between nodes' names to differentiate them, for 
 						// example the edge 11-2 and the edge 1-12 with no dashes would be 112 for both.
-						String i = arc.getAttribute("i");
-						String j = arc.getAttribute("j");
+						String i = "Ag" + arc.getAttribute("i");
+						String j = "Ag" + arc.getAttribute("j");
 						String id = "";
 						
 						// IMPORTANT : naming convention of ID : AB-BA with A < B
-						if (Integer.parseInt(i) < Integer.parseInt(j)) {
+						if (Integer.parseInt(i.substring(i.length()-1)) < Integer.parseInt(j.substring(j.length()-1))) {
 							id = i+"-"+j+"-"+j+"-"+i;
 						}
 						else {
@@ -111,7 +111,7 @@ public class Model extends Observable {
 			while (((line = br.readLine()) != null) && !("".equals(line))) {
 				// toute ligne sans parenthèse finale n'est pas à traiter
 				// DEV : on ne traite pas les lignes System
-				if ( line.substring(line.length()-1, line.length()).equals(")") && !line.contains("System") ) {
+				if ( line.substring(line.length()-1, line.length()).equals(")") ) {
 					// suppression de la parenthèse finale inutile
 					line = line.substring(0, line.length()-1);
 
@@ -147,8 +147,8 @@ public class Model extends Observable {
 						
 						ScenarioEvent scenario_event = new ScenarioEvent();
 						scenario_event.setCSSClass(css_class);
-						scenario_event.setSource(agents[0].trim().replaceAll("[^\\d.]", ""));
-						scenario_event.setDestination(agents[1].trim().replaceAll("[^\\d.]", ""));
+						scenario_event.setSource(agents[0].trim());
+						scenario_event.setDestination(agents[1].trim());
 						scenario_event.setType(parts[1].trim());
 						// if the event has a content
 						if (parts.length > 2) {

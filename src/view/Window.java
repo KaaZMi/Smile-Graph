@@ -67,6 +67,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	private JMenuItem speed_slow = null;
 	private JMenuItem speed_normal = null;
 	private JMenuItem speed_fast = null;
+	private JMenuItem speed_extrafast = null;
 	private JMenu help = null;
 	private JMenuItem about = null;
 	private JPanel container = null;
@@ -88,6 +89,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 
 	private Graph graph = null;
 	private Viewer viewer = null;
+	private ViewPanel view_panel = null;
 	private Thread scenario_execution = null;
 	private SpriteManager sman = null;
 	private boolean currently_moving = false; // is the scenario running ?
@@ -202,9 +204,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 						graph = new MultiGraph("embedded");
 						graph.setStrict(false);
 						graph.setAutoCreate(true); // automatic creation of nodes depending edges
-						graph.addAttribute("ui.antialias"); // graphics smoothing
-						graph.addAttribute("ui.quality");
-						graph.addAttribute("ui.stylesheet", STYLESHEET); // CSS style of the graph
+						
 						sman = new SpriteManager(graph);
 						sman.setSpriteFactory(new mySpritesFactory());
 	
@@ -213,15 +213,30 @@ public class Window extends JFrame implements Observer, ViewerListener {
 							// add an undirected edge
 							graph.addEdge(entry.getKey(), entry.getValue().get(0), entry.getValue().get(1), false);
 						}
+						
+						graph.addNode("System");
+						
 						for (Node node : graph) {
-							node.setAttribute("ui.label", node.getId());
-							node.setAttribute("ui.size", "25");
-							node.setAttribute("memory", new LinkedHashMap<Integer,Formula>());
+							if (node.getId().equals("System")) {
+								node.setAttribute("ui.label", node.getId());
+								node.addAttribute("ui.class", "system");
+							}
+							else {
+								node.setAttribute("ui.label", node.getId());
+								// add an edge from System to all nodes
+								graph.addEdge("System-"+node.getId()+"-"+node.getId()+"-System", "System", node.getId());
+								node.setAttribute("memory", new LinkedHashMap<Integer,Formula>());
+							}
+							
 						}
+						
+						graph.addAttribute("ui.antialias"); // graphics smoothing
+						graph.addAttribute("ui.quality");
+						graph.addAttribute("ui.stylesheet", STYLESHEET); // CSS style of the graph
 	
 						viewer = new Viewer(graph, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
 						viewer.enableAutoLayout();
-						ViewPanel view_panel = viewer.addDefaultView(false); // false indicates "no JFrame"
+						view_panel = viewer.addDefaultView(false); // false indicates "no JFrame"
 						// TODO : view_panel.addMouseWheelListener(new MyMouseListener());
 	
 						/* IMPORTANT !
@@ -299,10 +314,12 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		speed_slow = new JRadioButtonMenuItem("Slow");
 		speed_normal = new JRadioButtonMenuItem("Normal");
 		speed_fast = new JRadioButtonMenuItem("Fast");
+		speed_extrafast = new JRadioButtonMenuItem("Extra fast");
 		speed_normal.setSelected(true); // default speed
 		speed_group.add(speed_slow);
 		speed_group.add(speed_normal);
 		speed_group.add(speed_fast);
+		speed_group.add(speed_extrafast);
 		
 		speed_slow.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e){
@@ -319,10 +336,16 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				setSpeed(1);
 			}
 		});
+		speed_extrafast.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				setSpeed(0);
+			}
+		});
 		
 		speed_menu.add(speed_slow);
 		speed_menu.add(speed_normal);
 		speed_menu.add(speed_fast);
+		speed_menu.add(speed_extrafast);
 		
 		speed_menu.setEnabled(false);
 
@@ -379,8 +402,6 @@ public class Window extends JFrame implements Observer, ViewerListener {
 					scenario_execution = new Thread() {
 						public void run() {
 							int cursor = 0;
-							boolean direction = true;
-							double pos = 0;
 							String i = null;
 							String j = null;
 							String edge_id = null;
@@ -392,15 +413,6 @@ public class Window extends JFrame implements Observer, ViewerListener {
 								j = model.getEvents().get(cursor).getDestination();
 								edge_id = getEdgebyNodes(i,j);
 								
-								if (Integer.parseInt(i) < Integer.parseInt(j)) {
-									direction = true;
-									pos = 0;
-								}
-								else {
-									direction = false;
-									pos = 1;
-								}
-								
 								System.out.println("----------------");
 								System.out.println(cursor + "/" + model.getEvents().get(cursor).toString());
 								System.out.println(edge_id);
@@ -408,8 +420,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 								
 								sprite = (mySprite) sman.addSprite("s_" + edge_id);
 								sprite.attachToEdge(edge_id);
-								sprite.setPosition(pos);
-								sprite.setDirection(direction);
+								sprite.initEtat(i, j);
 								sprite.setAttribute("ui.class", model.getEvents().get(cursor).getCSSClass());
 								sprite.setAttribute("ui.label", model.getEvents().get(cursor).getGroup());
 							}
@@ -446,9 +457,18 @@ public class Window extends JFrame implements Observer, ViewerListener {
 								 */
 								if(!sprite.move()) {
 									updateNode(model.getEvents().get(cursor));
+									
 									// DEV : pour voir taille mémoire noeud
-//									LinkedHashMap<Integer,Formula> memory = graph.getNode(model.getEvents().get(cursor).getDestination()).getAttribute("memory");
-//									System.out.println(j + " " + memory.size());
+//									Node destination = graph.getNode(model.getEvents().get(cursor).getDestination());
+//									LinkedHashMap<Integer,Formula> memory = destination.getAttribute("memory");
+//									int size = 0;
+//									for (Entry<Integer, Formula> entry : memory.entrySet()) {
+//								        if (entry.getValue().isAccepted()) {
+//								        	size++;
+//								        }
+//								    }
+//									destination.setAttribute("ui.size", (size+25)/10);
+									
 									
 									controler.incrementCursor();
 									sman.removeSprite(sprite.getId());
@@ -458,15 +478,6 @@ public class Window extends JFrame implements Observer, ViewerListener {
 									j = model.getEvents().get(cursor).getDestination();
 									edge_id = getEdgebyNodes(i,j);
 									
-									if (Integer.parseInt(i) < Integer.parseInt(j)) {
-										direction = true;
-										pos = 0;
-									}
-									else {
-										direction = false;
-										pos = 1;
-									}
-									
 									System.out.println("----------------");
 									System.out.println(cursor + "/" + model.getEvents().get(cursor));
 									System.out.println(edge_id);
@@ -474,8 +485,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 									
 									sprite = (mySprite) sman.addSprite("s_" + edge_id);
 									sprite.attachToEdge(edge_id);
-									sprite.setPosition(pos);
-									sprite.setDirection(direction);
+									sprite.initEtat(i, j);
 									sprite.setAttribute("ui.class", model.getEvents().get(cursor).getCSSClass());
 									sprite.setAttribute("ui.label", model.getEvents().get(cursor).getGroup());
 								}
@@ -519,8 +529,6 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				scenario_execution = new Thread() {
 					public void run() {
 						int cursor = 0;
-						boolean direction = true;
-						double pos = 0;
 						String i = null;
 						String j = null;
 						String edge_id = null;
@@ -532,15 +540,6 @@ public class Window extends JFrame implements Observer, ViewerListener {
 							j = model.getEvents().get(cursor).getDestination();
 							edge_id = getEdgebyNodes(i,j);
 							
-							if (Integer.parseInt(i) < Integer.parseInt(j)) {
-								direction = true;
-								pos = 0;
-							}
-							else {
-								direction = false;
-								pos = 1;
-							}
-							
 							System.out.println("----------------");
 							System.out.println(cursor + "/" + model.getEvents().get(cursor));
 							System.out.println(edge_id);
@@ -548,8 +547,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 							
 							sprite = (mySprite) sman.addSprite("s_" + edge_id);
 							sprite.attachToEdge(edge_id);
-							sprite.setPosition(pos);
-							sprite.setDirection(direction);
+							sprite.initEtat(i, j);
 							sprite.setAttribute("ui.class", model.getEvents().get(cursor).getCSSClass());
 							sprite.setAttribute("ui.label", model.getEvents().get(cursor).getGroup());
 						}
@@ -672,10 +670,25 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	}
 	
 	private String getEdgebyNodes(String i, String j) {
-		if (Integer.parseInt(i) < Integer.parseInt(j))
-			return i+"-"+j+"-"+j+"-"+i;
-		else
-			return j+"-"+i+"-"+i+"-"+j;
+		String id = "";
+		
+		if ( i.contains("System") || j.contains("System") ) {
+			if ( i.contains("System") ) {
+				id = "System-"+j+"-"+j+"-System";
+			}
+			else if ( j.contains("System") ) {
+				id = "System-"+i+"-"+i+"-System";
+			}
+		}
+		
+		else {
+			if (Integer.parseInt(i.substring(i.length() - 1)) < Integer.parseInt(j.substring(j.length() - 1)))
+				id = i+"-"+j+"-"+j+"-"+i;
+			else
+				id = j+"-"+i+"-"+i+"-"+j;
+		}
+		
+		return id;
 	}
 	
 	/**
@@ -807,23 +820,34 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			"graph {"+
 			"	fill-mode: gradient-radial;"+
 			"	fill-color: #FFFFFF,#EEEEEE;"+
-			"} "+
+			"}"+
 			"edge {"+
 			"	size: 1.5px;"+
 			"	shape: line;"+
 			"	fill-color: #222222;"+
 			"	fill-mode: dyn-plain;"+
 			"	size-mode: dyn-size;"+
-			"} "+
+			"}"+
 			"node {"+
+			"	size: 25;"+
 			"	shape: circle;"+
 			"	fill-mode: dyn-plain;"+
 			"	fill-color: #fad15f;"+
 			"	size-mode: dyn-size;"+
-			"	size: 15px;"+
 			"	stroke-mode: plain;"+
 			"	stroke-width: 2px;"+
-			"	stroke-color: #333333;}"+
+			"	stroke-color: #333333;"+
+			"}"+
+			"node.system {"+
+			"	size: 40;"+
+			"	shape: rounded-box;"+
+			"	fill-mode: dyn-plain;"+
+			"	fill-color: #fad15f;"+
+			"	size-mode: dyn-size;"+
+			"	stroke-mode: plain;"+
+			"	stroke-width: 2px;"+
+			"	stroke-color: #333333;"+
+			"}"+
 			"sprite {"+
 			"	size: 20px;"+
 			"	fill-mode: plain;"+
@@ -844,7 +868,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			"	stroke-color: purple;"+
 			"}"+
 			"sprite.new_examples {"+
-			"	fill-color: blue;"+
+			"	fill-color: cyan;"+
 			"	shape: rounded-box;"+
 			"}"+
 			"sprite.counter_examples {"+
