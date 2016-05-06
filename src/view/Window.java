@@ -225,6 +225,8 @@ public class Window extends JFrame implements Observer, ViewerListener {
 								node.setAttribute("ui.label", node.getId());
 								// add an edge from System to all nodes
 								graph.addEdge("System-"+node.getId()+"-"+node.getId()+"-System", "System", node.getId());
+								Edge e = graph.getEdge("System-"+node.getId()+"-"+node.getId()+"-System");
+								e.addAttribute("ui.class", "system");
 								node.setAttribute("memory", new LinkedHashMap<Integer,Formula>());
 							}
 							
@@ -673,12 +675,10 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		String id = "";
 		
 		if ( i.contains("System") || j.contains("System") ) {
-			if ( i.contains("System") ) {
+			if ( i.contains("System") )
 				id = "System-"+j+"-"+j+"-System";
-			}
-			else if ( j.contains("System") ) {
+			else if ( j.contains("System") )
 				id = "System-"+i+"-"+i+"-System";
-			}
 		}
 		
 		else {
@@ -827,6 +827,14 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			"	fill-color: #222222;"+
 			"	fill-mode: dyn-plain;"+
 			"	size-mode: dyn-size;"+
+			"}"+
+			"edge.system {"+
+			"	size: 0px;"+
+			"	shape: line;"+
+			"	fill-mode: none;"+
+			"	stroke-mode: dashes;"+
+			"	stroke-width: 1px;"+
+			"	stroke-color: #222222;"+
 			"}"+
 			"node {"+
 			"	size: 25;"+
