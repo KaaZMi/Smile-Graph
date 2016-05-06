@@ -74,7 +74,7 @@ public class Model extends Observable {
 						edges.put(id, nodes);
 						
 						// display of the edge's ID
-						System.out.println("\n*************ARC************");
+						System.out.println("\n************ARC***********");
 						System.out.println(id);
 					}
 				}				

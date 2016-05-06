@@ -28,8 +28,8 @@ public class mySprite extends Sprite {
 		}
 		
 		else {
-			i = i.substring(i.length() - 1);
-			j = j.substring(j.length() - 1);
+			i = i.substring(i.length()-1);
+			j = j.substring(j.length()-1);
 			if (Integer.parseInt(i) < Integer.parseInt(j)) {
 				this.setDirection(true);
 				this.setPosition(0);

@@ -682,7 +682,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		}
 		
 		else {
-			if (Integer.parseInt(i.substring(i.length() - 1)) < Integer.parseInt(j.substring(j.length() - 1)))
+			if (Integer.parseInt(i.substring(i.length()-1)) < Integer.parseInt(j.substring(j.length()-1)))
 				id = i+"-"+j+"-"+j+"-"+i;
 			else
 				id = j+"-"+i+"-"+i+"-"+j;
