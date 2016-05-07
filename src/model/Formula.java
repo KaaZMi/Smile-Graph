@@ -11,6 +11,12 @@ public class Formula {
 		setAccepted(false);
 		setConsistant(false);
 	}
+	
+	public Formula(Object atoms, Object tags) {
+		setContent(atoms.toString());
+		setAccepted(false);
+		setConsistant(false);
+	}
 
 	public Formula(Object formula, boolean accepted) {
 		setContent(formula.toString());

@@ -15,6 +15,11 @@ public class mySprite extends Sprite {
 		this.direction = direction;
 	}
 	
+	/**
+	 * Defines the position and direction of the sprite depending on the source and destination.
+	 * @param i Source
+	 * @param j Destination
+	 */
 	public void initEtat(String i, String j) {
 		if ( i.contains("System") || j.contains("System") ) {
 			if ( i.contains("System") ) {

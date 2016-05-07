@@ -9,6 +9,7 @@ public class ScenarioEvent {
 	private String type;
 	private int group;
 	private ArrayList<Formula> formulas = new ArrayList<Formula>();
+	private Example example;
 
 	public String getCSSClass() {
 		return css_class;
@@ -57,6 +58,15 @@ public class ScenarioEvent {
 	public void setFormulas(ArrayList<Formula> formulas) {
 		this.formulas = formulas;
 	}
+	
+	public Example getExample() {
+		return example;
+	}
+
+	public void setExample(Example example) {
+		this.example = example;
+	}
+	
 
 	@Override
 	public String toString() {

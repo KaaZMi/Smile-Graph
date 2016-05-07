@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Observable;
-import java.util.Map.Entry;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -22,7 +21,6 @@ public class Model extends Observable {
 
 	private LinkedHashMap<String, ArrayList<String>> edges = new LinkedHashMap<String, ArrayList<String>>();
 	private ArrayList<ScenarioEvent> events = new ArrayList<ScenarioEvent>();
-	private LinkedHashMap<Integer, Formula> unique_hyp = new LinkedHashMap<Integer, Formula>();
 	private int cursor = 0; // current position of the scenario
 	
 	private boolean graphLoaded = false;
@@ -145,6 +143,9 @@ public class Model extends Observable {
 						// separate source and destination
 						String[] agents = parts[0].trim().split("->");
 						
+						/*
+						 * Create a ScenarioEvent object to handle the content of the messages.
+						 */
 						ScenarioEvent scenario_event = new ScenarioEvent();
 						scenario_event.setCSSClass(css_class);
 						scenario_event.setSource(agents[0].trim());
@@ -153,42 +154,28 @@ public class Model extends Observable {
 						// if the event has a content
 						if (parts.length > 2) {
 							ArrayList<Object> content = buildList(parts[2].trim());
-							ArrayList<Formula> formulas = parseContent(content);
-							/*
-							 * We wish to number each hypothesis, so we are fulfilling 
-							 * a unique values map.
-							 */
-							/*if (parts[1].contains("Hypothese a tester") || parts[1].contains("Hypothese confirmee") || parts[1].contains("Hypothese SMA-consistante")) {
-								int num = 0;
-								for (Formula f : formulas) {
-									boolean formula_already_viewed = false;
-									for (Entry<Integer, Formula> entry : unique_hyp.entrySet()) {
-								        if (entry.getValue().compareTo(f)) {
-								        	formula_already_viewed = true;
-								        	f.setNum(num); // same number as the hypothesis found
-								        }
-								        num++;
-								    }
-									
-									if (!formula_already_viewed) {
-										num = unique_hyp.size();
-										unique_hyp.put(num, f);
-										f.setNum(num); // new number
-								    }
+							if (parts[1].contains("Hypothese")) {
+								ArrayList<Formula> formulas = parseHypothesis(content);
+								
+								scenario_event.setFormulas(formulas);
+								
+								// compare the formulas of this event to the formulas of the previous event
+								if (!compareFormulas(formulas, previous_formulas)) {
+									group++;
+									previous_formulas = formulas;
 								}
-							}*/
-							
-							scenario_event.setFormulas(formulas);
-							
-							// compare the formulas of this event to the formulas of the previous event
-							if (!compareFormulas(formulas, previous_formulas)) {
-								group++;
-								previous_formulas = formulas;
+								
+								scenario_event.setGroup(group);
+								
+								str_index = 0;
+							}
+							else if (parts[1].contains("Exemples")) {
+								Example example = parseExample(content);
+								scenario_event.setExample(example);
+								
+								str_index = 0;
 							}
 							
-							scenario_event.setGroup(group);
-							
-							str_index = 0;
 						}
 
 						this.events.add(scenario_event); // add the current event to the map
@@ -201,11 +188,6 @@ public class Model extends Observable {
 //					}
 				}
 			}
-			
-			// DEV : vérifier la numérotation
-//			for (ScenarioEvent event : events) {
-//				System.out.println(event.toString());
-//		    }
 
 			br.close();
 		}
@@ -220,7 +202,7 @@ public class Model extends Observable {
 	}
 	
 	/**
-	 * Transform a string which contains nested array to a JAVA array
+	 * Transform a string which contains nested array to a real array
 	 * @param str
 	 * @return array
 	 */
@@ -256,17 +238,27 @@ public class Model extends Observable {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public ArrayList<Formula> parseContent(ArrayList<Object> content) {
-		Object level_1 = (ArrayList<Object>) content.get(0);
+	public ArrayList<Formula> parseHypothesis(ArrayList<Object> hypothesis) {
+		Object level_1 = (ArrayList<Object>) hypothesis.get(0);
 		Object level_2 = ((ArrayList<Object>) level_1).get(1);
 		ArrayList<Formula> formulas = new ArrayList<Formula>();
 		
 		for (int i = 0 ; i<((ArrayList<Object>) level_2).size() ; i+=3) {
-			Object formula = ((ArrayList<Object>) level_2).get(i);
-			formulas.add(new Formula(formula));
+			Object atoms = ((ArrayList<Object>) level_2).get(i);
+			formulas.add(new Formula(atoms));
 		}
 		
 		return formulas;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public Example parseExample(ArrayList<Object> example) {
+		ArrayList<Object> level_1 = (ArrayList<Object>) example.get(0);
+		
+		ArrayList<String> atoms = (ArrayList<String>) level_1.get(1);
+		ArrayList<String> tags = (ArrayList<String>) level_1.get(3);
+		
+		return new Example(atoms,tags);
 	}
 	
 	public boolean compareFormulas(ArrayList<Formula> formulas1, ArrayList<Formula> formulas2) {

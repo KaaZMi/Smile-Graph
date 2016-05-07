@@ -46,6 +46,7 @@ import org.graphstream.ui.view.ViewerListener;
 import org.graphstream.ui.view.ViewerPipe;
 
 import controler.Controler;
+import model.Example;
 import model.Formula;
 import model.Model;
 import model.ScenarioEvent;
@@ -224,10 +225,8 @@ public class Window extends JFrame implements Observer, ViewerListener {
 							else {
 								node.setAttribute("ui.label", node.getId());
 								// add an edge from System to all nodes
-								graph.addEdge("System-"+node.getId()+"-"+node.getId()+"-System", "System", node.getId());
-								Edge e = graph.getEdge("System-"+node.getId()+"-"+node.getId()+"-System");
-								e.addAttribute("ui.class", "system");
-								node.setAttribute("memory", new LinkedHashMap<Integer,Formula>());
+								graph.addEdge("System-"+node.getId()+"-"+node.getId()+"-System", "System", node.getId()).addAttribute("ui.class", "system");
+								node.setAttribute("memory", new ArrayList<Example>());
 							}
 							
 						}
@@ -695,68 +694,75 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	 * Update of a node according to information that reached it.
 	 */
 	private void updateNode(ScenarioEvent se) {
-		if (se.getType().contains("Hypothese a tester")) {
+		if (se.getType().contains("Nouveaux Exemples")) {
 			Node node_destination = graph.getNode(se.getDestination());
-			LinkedHashMap<Integer,Formula> memory = node_destination.getAttribute("memory");
-			/*
-			 * For each formula of the message, we will see if the memory contains the formula.
-			 * If not, the formula is added to the memory by putting it at the end of the memory.
-			 */
-			for (Formula formula : se.getFormulas()) {
-				Iterator<Entry<Integer, Formula>> iterator = memory.entrySet().iterator();
-				int lastKey = 0;
-				boolean formula_already_memorised = false;
-			    while (iterator.hasNext()) {
-			        lastKey = iterator.next().getKey();
-			        if (memory.get(lastKey).compareTo(formula)) {
-			        	formula_already_memorised = true;
-			        }
-			    }
-			    
-			    if (!formula_already_memorised) {
-			    	memory.put(lastKey + 1, formula);
-			    }
-			}
+			ArrayList<Example> memory = node_destination.getAttribute("memory");
+			memory.add(se.getExample());
 			node_destination.setAttribute("memory", memory);
+			System.out.println(memory);
 		}
-		
-		else if (se.getType().contains("Hypothese confirmee")) {
-			Node node = graph.getNode(se.getSource());
-			LinkedHashMap<Integer,Formula> memory = node.getAttribute("memory");
-			// looking for the formula in the memory
-			for (Formula formula : se.getFormulas()) {
-				for (Entry<Integer, Formula> entry : memory.entrySet()) {
-			        if (entry.getValue().compareTo(formula)) {
-			        	// update the entry by putting the same formula but this time accepted
-			            memory.put(entry.getKey(), new Formula(formula.getContent(),true));
-			        }
-			    }
-			}
-			node.setAttribute("memory", memory);
-		}
-		
-		else if (se.getType().contains("Hypothese SMA-consistante")) {
-			Node node_source = graph.getNode(se.getSource());
-			Node node_destination = graph.getNode(se.getDestination());
-			LinkedHashMap<Integer,Formula> memory_source = node_source.getAttribute("memory");
-			LinkedHashMap<Integer,Formula> memory_destination = node_destination.getAttribute("memory");
-			for (Formula formula : se.getFormulas()) {
-				for (Entry<Integer, Formula> entry : memory_source.entrySet()) {
-			        if (entry.getValue().compareTo(formula)) {
-			        	// update the entry by putting the same formula but this time consistent
-			        	memory_source.put(entry.getKey(), new Formula(formula.getContent(),true,true));
-			        }
-			    }
-				for (Entry<Integer, Formula> entry : memory_destination.entrySet()) {
-			        if (entry.getValue().compareTo(formula)) {
-			        	// update the entry by putting the same formula but this time consistent
-			        	memory_destination.put(entry.getKey(), new Formula(formula.getContent(),true,true));
-			        }
-			    }
-			}
-			node_source.setAttribute("memory", memory_source);
-			node_destination.setAttribute("memory", memory_destination);
-		}
+//		else if (se.getType().contains("Hypothese a tester")) {
+//			Node node_destination = graph.getNode(se.getDestination());
+//			LinkedHashMap<Integer,Formula> memory = node_destination.getAttribute("memory");
+//			/*
+//			 * For each formula of the message, we will see if the memory contains the formula.
+//			 * If not, the formula is added to the memory by putting it at the end of the memory.
+//			 */
+//			for (Formula formula : se.getFormulas()) {
+//				Iterator<Entry<Integer, Formula>> iterator = memory.entrySet().iterator();
+//				int lastKey = 0;
+//				boolean formula_already_memorised = false;
+//			    while (iterator.hasNext()) {
+//			        lastKey = iterator.next().getKey();
+//			        if (memory.get(lastKey).compareTo(formula)) {
+//			        	formula_already_memorised = true;
+//			        }
+//			    }
+//			    
+//			    if (!formula_already_memorised) {
+//			    	memory.put(lastKey + 1, formula);
+//			    }
+//			}
+//			node_destination.setAttribute("memory", memory);
+//		}
+//		
+//		else if (se.getType().contains("Hypothese confirmee")) {
+//			Node node = graph.getNode(se.getSource());
+//			LinkedHashMap<Integer,Formula> memory = node.getAttribute("memory");
+//			// looking for the formula in the memory
+//			for (Formula formula : se.getFormulas()) {
+//				for (Entry<Integer, Formula> entry : memory.entrySet()) {
+//			        if (entry.getValue().compareTo(formula)) {
+//			        	// update the entry by putting the same formula but this time accepted
+//			            memory.put(entry.getKey(), new Formula(formula.getContent(),true));
+//			        }
+//			    }
+//			}
+//			node.setAttribute("memory", memory);
+//		}
+//		
+//		else if (se.getType().contains("Hypothese SMA-consistante")) {
+//			Node node_source = graph.getNode(se.getSource());
+//			Node node_destination = graph.getNode(se.getDestination());
+//			LinkedHashMap<Integer,Formula> memory_source = node_source.getAttribute("memory");
+//			LinkedHashMap<Integer,Formula> memory_destination = node_destination.getAttribute("memory");
+//			for (Formula formula : se.getFormulas()) {
+//				for (Entry<Integer, Formula> entry : memory_source.entrySet()) {
+//			        if (entry.getValue().compareTo(formula)) {
+//			        	// update the entry by putting the same formula but this time consistent
+//			        	memory_source.put(entry.getKey(), new Formula(formula.getContent(),true,true));
+//			        }
+//			    }
+//				for (Entry<Integer, Formula> entry : memory_destination.entrySet()) {
+//			        if (entry.getValue().compareTo(formula)) {
+//			        	// update the entry by putting the same formula but this time consistent
+//			        	memory_destination.put(entry.getKey(), new Formula(formula.getContent(),true,true));
+//			        }
+//			    }
+//			}
+//			node_source.setAttribute("memory", memory_source);
+//			node_destination.setAttribute("memory", memory_destination);
+//		}
 		
 		// DEV
 //		if (node != null) {
