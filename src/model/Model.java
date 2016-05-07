@@ -26,7 +26,7 @@ public class Model extends Observable {
 	private boolean graphLoaded = false;
 	private boolean scenarioLoaded = false;
 	private int nbAgents = 0;
-	private static int str_index = 0; // index to browse the content of a message
+	private static int parsing_index = 0; // index to browse the content of a message
 
 	public boolean openXML(String path) {
 		final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -102,7 +102,7 @@ public class Model extends Observable {
 			int loop = 0; // DEV
 			String css_class = null;
 			boolean etudier_cette_ligne = false;
-			ArrayList<Formula> previous_formulas = new ArrayList<Formula>();
+			Hypothesis previous_hypothesis = new Hypothesis(new ArrayList<Prototype>());
 			int group = 0;
 
 			// tant qu'une ligne non vide est lisible
@@ -154,26 +154,32 @@ public class Model extends Observable {
 						// if the event has a content
 						if (parts.length > 2) {
 							ArrayList<Object> content = buildList(parts[2].trim());
+							
+							/*
+							 * The structure is different depending on the type of the message.
+							 * Therefore we treat differently hypotheses and examples.
+							 */
 							if (parts[1].contains("Hypothese")) {
-								ArrayList<Formula> formulas = parseHypothesis(content);
+								Hypothesis hypothesis = parseHypothesis(content);
 								
-								scenario_event.setFormulas(formulas);
+								scenario_event.setHypothesis(hypothesis);
 								
 								// compare the formulas of this event to the formulas of the previous event
-								if (!compareFormulas(formulas, previous_formulas)) {
+								if (!compareHypotheses(hypothesis, previous_hypothesis)) {
 									group++;
-									previous_formulas = formulas;
+									previous_hypothesis = hypothesis;
 								}
 								
 								scenario_event.setGroup(group);
 								
-								str_index = 0;
+								parsing_index = 0;
 							}
 							else if (parts[1].contains("Exemples")) {
 								Example example = parseExample(content);
 								scenario_event.setExample(example);
+								scenario_event.setGroup(0);
 								
-								str_index = 0;
+								parsing_index = 0;
 							}
 							
 						}
@@ -210,21 +216,19 @@ public class Model extends Observable {
 		ArrayList<Object> list = new ArrayList<>(); // the list can contain Strings and sub-lists
 		String stack = "";
 
-		while (str_index < str.length()) {
-			char c = str.charAt(str_index++);
+		while (parsing_index < str.length()) {
+			char c = str.charAt(parsing_index++);
 			
 			if (c == '[') {
 				if (!stack.trim().equals("") && !stack.trim().equals(",")) {
-					// add the current stack to the current list
-					list.add(stack.trim());
+					list.add(stack.trim()); // add the current stack to the current list
 					stack = "";
 				}
 				list.add(buildList(str)); // new sublist
 			}
 			else if (c == ']') {
 				if (!stack.trim().equals("") && !stack.trim().equals(",")) {
-					// add the current stack to the current list
-					list.add(stack.trim());
+					list.add(stack.trim()); // add the current stack to the current list
 					stack = "";
 				}
 				break; // end of the current list
@@ -238,22 +242,22 @@ public class Model extends Observable {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public ArrayList<Formula> parseHypothesis(ArrayList<Object> hypothesis) {
-		Object level_1 = (ArrayList<Object>) hypothesis.get(0);
-		Object level_2 = ((ArrayList<Object>) level_1).get(1);
-		ArrayList<Formula> formulas = new ArrayList<Formula>();
+	public Hypothesis parseHypothesis(ArrayList<Object> content) {
+		ArrayList<Object> level_1 = (ArrayList<Object>) content.get(0);
+		ArrayList<Object> level_2 = (ArrayList<Object>) level_1.get(1); // .get(0) is the class
+		ArrayList<Prototype> prototypes = new ArrayList<Prototype>();
 		
-		for (int i = 0 ; i<((ArrayList<Object>) level_2).size() ; i+=3) {
-			Object atoms = ((ArrayList<Object>) level_2).get(i);
-			formulas.add(new Formula(atoms));
+		for (int i = 0 ; i < level_2.size() ; i+=3) {
+			ArrayList<String> atoms = (ArrayList<String>) level_2.get(i);
+			prototypes.add(new Prototype(atoms));
 		}
 		
-		return formulas;
+		return new Hypothesis(prototypes);
 	}
 	
 	@SuppressWarnings("unchecked")
-	public Example parseExample(ArrayList<Object> example) {
-		ArrayList<Object> level_1 = (ArrayList<Object>) example.get(0);
+	public Example parseExample(ArrayList<Object> content) {
+		ArrayList<Object> level_1 = (ArrayList<Object>) content.get(0);
 		
 		ArrayList<String> atoms = (ArrayList<String>) level_1.get(1);
 		ArrayList<String> tags = (ArrayList<String>) level_1.get(3);
@@ -261,19 +265,15 @@ public class Model extends Observable {
 		return new Example(atoms,tags);
 	}
 	
-	public boolean compareFormulas(ArrayList<Formula> formulas1, ArrayList<Formula> formulas2) {
+	public boolean compareHypotheses(Hypothesis h1, Hypothesis h2) {
 		int nb_equals = 0;
-		for (Formula f1 : formulas1) {
-			for (Formula f2 : formulas2) {
-				if (f1.compareTo(f2)) {
+		for (Prototype p1 : h1.getPrototypes())
+			for (Prototype p2 : h2.getPrototypes())
+				if (p1.compareTo(p2))
 					nb_equals++;
-				}	
-			}	
-		}
 		
-		if (nb_equals*2 == formulas1.size()+formulas2.size()) {
+		if (nb_equals*2 == h1.getPrototypes().size()+h2.getPrototypes().size())
 			return true;
-		}
 		
 		return false;
 	}

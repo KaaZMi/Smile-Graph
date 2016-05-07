@@ -47,7 +47,7 @@ import org.graphstream.ui.view.ViewerPipe;
 
 import controler.Controler;
 import model.Example;
-import model.Formula;
+import model.Prototype;
 import model.Model;
 import model.ScenarioEvent;
 
@@ -631,7 +631,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				
 				// memory of the nodes is reset
 				for (Node node : graph) {
-					node.setAttribute("memory", new LinkedHashMap<Integer,Formula>());
+					node.setAttribute("memory", new ArrayList<Example>());
 				}
 				
 				currently_moving = false;
@@ -777,9 +777,9 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	
 	public String getNodeInfoByID(String node_id) {
 		Node n = graph.getNode(node_id);
-		LinkedHashMap<Integer,Formula> memory = n.getAttribute("memory");
+		LinkedHashMap<Integer,Prototype> memory = n.getAttribute("memory");
 		String node_info = "";
-		for (Entry<Integer, Formula> entry : memory.entrySet()) {
+		for (Entry<Integer, Prototype> entry : memory.entrySet()) {
 			node_info += entry.getValue().toString() + "\n";
 	    }
 		return node_info;

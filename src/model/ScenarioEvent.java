@@ -1,15 +1,13 @@
 package model;
 
-import java.util.ArrayList;
-
 public class ScenarioEvent {
 	private String css_class;
 	private String source;
 	private String destination;
 	private String type;
 	private int group;
-	private ArrayList<Formula> formulas = new ArrayList<Formula>();
 	private Example example;
+	private Hypothesis hypothesis;
 
 	public String getCSSClass() {
 		return css_class;
@@ -51,14 +49,6 @@ public class ScenarioEvent {
 		this.group = group;
 	}
 	
-	public ArrayList<Formula> getFormulas() {
-		return formulas;
-	}
-	
-	public void setFormulas(ArrayList<Formula> formulas) {
-		this.formulas = formulas;
-	}
-	
 	public Example getExample() {
 		return example;
 	}
@@ -67,11 +57,19 @@ public class ScenarioEvent {
 		this.example = example;
 	}
 	
+	public Hypothesis getHypothesis() {
+		return hypothesis;
+	}
+
+	public void setHypothesis(Hypothesis hypothesis) {
+		this.hypothesis = hypothesis;
+	}
 
 	@Override
 	public String toString() {
-		return "ScenarioEvent [css_class=" + css_class + ", source=" + source + ", destination="
-				+ destination + ", type=" + type + ", group=" + group + ", formulas=" + formulas + "]";
+		return "ScenarioEvent [css_class=" + css_class + ", source=" + source + ", destination=" + destination
+				+ ", type=" + type + ", group=" + group + ", example=" + example + ", hypothesis=" + hypothesis + "]";
 	}
+	
 
 }
