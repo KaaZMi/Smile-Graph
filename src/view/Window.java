@@ -457,19 +457,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 								 * until it returns false.
 								 */
 								if(!sprite.move()) {
-									updateNode(model.getEvents().get(cursor));
-									
-									// DEV : pour voir taille mémoire noeud
-//									Node destination = graph.getNode(model.getEvents().get(cursor).getDestination());
-//									LinkedHashMap<Integer,Formula> memory = destination.getAttribute("memory");
-//									int size = 0;
-//									for (Entry<Integer, Formula> entry : memory.entrySet()) {
-//								        if (entry.getValue().isAccepted()) {
-//								        	size++;
-//								        }
-//								    }
-//									destination.setAttribute("ui.size", (size+25)/10);
-									
+									updateNode(model.getEvents().get(cursor));									
 									
 									controler.incrementCursor();
 									sman.removeSprite(sprite.getId());
@@ -699,6 +687,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			ArrayList<Example> memory = node_destination.getAttribute("memory");
 			memory.add(se.getExample());
 			node_destination.setAttribute("memory", memory);
+			node_destination.setAttribute("ui.size", memory.size()+25);
 			System.out.println(memory);
 		}
 //		else if (se.getType().contains("Hypothese a tester")) {
