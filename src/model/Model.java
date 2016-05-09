@@ -5,7 +5,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Observable;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -244,11 +246,12 @@ public class Model extends Observable {
 	@SuppressWarnings("unchecked")
 	public Hypothesis parseHypothesis(ArrayList<Object> content) {
 		ArrayList<Object> level_1 = (ArrayList<Object>) content.get(0);
-		ArrayList<Object> level_2 = (ArrayList<Object>) level_1.get(1); // .get(0) is the class
-		ArrayList<Prototype> prototypes = new ArrayList<Prototype>();
+		ArrayList<Object> level_prototype = (ArrayList<Object>) level_1.get(1); // .get(0) is the class
 		
-		for (int i = 0 ; i < level_2.size() ; i+=3) {
-			ArrayList<String> atoms = (ArrayList<String>) level_2.get(i);
+		ArrayList<Prototype> prototypes = new ArrayList<Prototype>();
+		for (int i = 0 ; i < level_prototype.size() ; i+=3) {
+			ArrayList<String> level_atoms = (ArrayList<String>) level_prototype.get(i);
+			List<String> atoms = new ArrayList<String>(Arrays.asList(level_atoms.get(0).split(", ")));
 			prototypes.add(new Prototype(atoms));
 		}
 		
@@ -259,8 +262,10 @@ public class Model extends Observable {
 	public Example parseExample(ArrayList<Object> content) {
 		ArrayList<Object> level_1 = (ArrayList<Object>) content.get(0);
 		
-		ArrayList<String> atoms = (ArrayList<String>) level_1.get(1);
-		ArrayList<String> tags = (ArrayList<String>) level_1.get(3);
+		ArrayList<String> level_atoms = (ArrayList<String>) level_1.get(1);
+		List<String> atoms = new ArrayList<String>(Arrays.asList(level_atoms.get(0).split(", ")));
+		ArrayList<String> level_tags = (ArrayList<String>) level_1.get(3);
+		List<String> tags = new ArrayList<String>(Arrays.asList(level_tags.get(0).split(", ")));
 		
 		return new Example(atoms,tags);
 	}

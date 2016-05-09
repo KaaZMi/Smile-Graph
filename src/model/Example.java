@@ -1,20 +1,20 @@
 package model;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class Example extends Prototype {
-	private ArrayList<String> tags;
+	private List<String> tags;
 
-	public Example(ArrayList<String> atoms, ArrayList<String> tags) {
+	public Example(List<String> atoms, List<String> tags) {
 		super(atoms);
 		this.tags = tags;
 	}
 
-	public ArrayList<String> getTags() {
+	public List<String> getTags() {
 		return tags;
 	}
 
-	public void setTags(ArrayList<String> tags) {
+	public void setTags(List<String> tags) {
 		this.tags = tags;
 	}
 

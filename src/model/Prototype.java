@@ -1,19 +1,19 @@
 package model;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class Prototype {
-	private ArrayList<String> atoms;
+	private List<String> atoms;
 	
-	public Prototype(ArrayList<String> atoms) {
+	public Prototype(List<String> atoms) {
 		setAtoms(atoms);
 	}
 
-	public ArrayList<String> getAtoms() {
+	public List<String> getAtoms() {
 		return atoms;
 	}
 
-	public void setAtoms(ArrayList<String> atoms) {
+	public void setAtoms(List<String> atoms) {
 		this.atoms = atoms;
 	}
 	
