@@ -8,6 +8,7 @@ public class Hypothesis {
 	private int id;
 
 	public Hypothesis(ArrayList<Prototype> prototypes, boolean consistent) {
+		this.id = -1;
 		this.prototypes = prototypes;
 		this.consistent = consistent;
 	}
@@ -39,5 +40,18 @@ public class Hypothesis {
 	@Override
 	public String toString() {
 		return "Hypothesis [id=" + id + ", prototypes=" + prototypes + ", consistent=" + consistent + "]";
+	}
+	
+	public boolean compareTo(Hypothesis h) {
+		int nb_equals = 0;
+		for (Prototype p1 : h.getPrototypes())
+			for (Prototype p2 : this.getPrototypes())
+				if (p1.compareTo(p2))
+					nb_equals++;
+		
+		if (nb_equals*2 == h.getPrototypes().size()+this.getPrototypes().size())
+			return true;
+		
+		return false;
 	}
 }

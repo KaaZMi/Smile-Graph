@@ -101,7 +101,6 @@ public class Model extends Observable {
 			BufferedReader br = new BufferedReader(new FileReader(path));
 			String line = null;
 			
-			@SuppressWarnings("unused")
 			int loop = 0; // DEV
 			
 			String css_class = null;
@@ -166,8 +165,10 @@ public class Model extends Observable {
 							if (parts[1].contains("Hypothese")) {
 								Hypothesis hypothesis = parseHypothesis(content);
 								
-								// compare the formulas of this event to the formulas of the previous event
-								if (!compareHypotheses(hypothesis, previous_hypothesis)) {
+								/*
+								 * Compare the prototypes of this event to the prototypes of the previous event.
+								 */
+								if (!hypothesis.compareTo(previous_hypothesis)) {
 									hypothesis_id++;
 									previous_hypothesis = hypothesis;
 								}
@@ -268,19 +269,6 @@ public class Model extends Observable {
 		List<String> tags = new ArrayList<String>(Arrays.asList(level_tags.get(0).split(", ")));
 		
 		return new Example(atoms,tags);
-	}
-	
-	public boolean compareHypotheses(Hypothesis h1, Hypothesis h2) {
-		int nb_equals = 0;
-		for (Prototype p1 : h1.getPrototypes())
-			for (Prototype p2 : h2.getPrototypes())
-				if (p1.compareTo(p2))
-					nb_equals++;
-		
-		if (nb_equals*2 == h1.getPrototypes().size()+h2.getPrototypes().size())
-			return true;
-		
-		return false;
 	}
 	
 	public LinkedHashMap<String, ArrayList<String>> getEdges() {

@@ -22,5 +22,9 @@ public class Example extends Prototype {
 	public String toString() {
 		return "Example [tags=" + tags + ", atoms=" + super.getAtoms() + "]";
 	}
+	
+	public boolean compareTo(List<String> tags) {
+		return this.tags.equals(tags);
+	}
 
 }
