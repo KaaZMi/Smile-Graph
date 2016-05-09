@@ -9,7 +9,6 @@ import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 import java.util.Observable;
@@ -424,7 +423,9 @@ public class Window extends JFrame implements Observer, ViewerListener {
 								sprite.attachToEdge(edge_id);
 								sprite.initEtat(i, j);
 								sprite.setAttribute("ui.class", model.getEvents().get(cursor).getCSSClass());
-								sprite.setAttribute("ui.label", model.getEvents().get(cursor).getGroup());
+								if (model.getEvents().get(cursor).getType().contains("Hypothese")) {
+									sprite.setAttribute("ui.label", model.getEvents().get(cursor).getHypothesis().getId());
+								}
 							}
 							else {
 								/*
@@ -477,7 +478,9 @@ public class Window extends JFrame implements Observer, ViewerListener {
 									sprite.attachToEdge(edge_id);
 									sprite.initEtat(i, j);
 									sprite.setAttribute("ui.class", model.getEvents().get(cursor).getCSSClass());
-									sprite.setAttribute("ui.label", model.getEvents().get(cursor).getGroup());
+									if (model.getEvents().get(cursor).getType().contains("Hypothese")) {
+										sprite.setAttribute("ui.label", model.getEvents().get(cursor).getHypothesis().getId());
+									}
 								}
 								
 								try {
@@ -539,7 +542,9 @@ public class Window extends JFrame implements Observer, ViewerListener {
 							sprite.attachToEdge(edge_id);
 							sprite.initEtat(i, j);
 							sprite.setAttribute("ui.class", model.getEvents().get(cursor).getCSSClass());
-							sprite.setAttribute("ui.label", model.getEvents().get(cursor).getGroup());
+							if (model.getEvents().get(cursor).getType().contains("Hypothese")) {
+								sprite.setAttribute("ui.label", model.getEvents().get(cursor).getHypothesis().getId());
+							}
 						}
 						else {
 							/*

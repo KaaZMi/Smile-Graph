@@ -101,11 +101,13 @@ public class Model extends Observable {
 			BufferedReader br = new BufferedReader(new FileReader(path));
 			String line = null;
 			
+			@SuppressWarnings("unused")
 			int loop = 0; // DEV
+			
 			String css_class = null;
 			boolean etudier_cette_ligne = false;
 			Hypothesis previous_hypothesis = new Hypothesis(new ArrayList<Prototype>(),false);
-			int group = 0;
+			int hypothesis_id = 0;
 
 			// tant qu'une ligne non vide est lisible
 			while (((line = br.readLine()) != null) && !("".equals(line))) {
@@ -164,22 +166,20 @@ public class Model extends Observable {
 							if (parts[1].contains("Hypothese")) {
 								Hypothesis hypothesis = parseHypothesis(content);
 								
-								scenario_event.setHypothesis(hypothesis);
-								
 								// compare the formulas of this event to the formulas of the previous event
 								if (!compareHypotheses(hypothesis, previous_hypothesis)) {
-									group++;
+									hypothesis_id++;
 									previous_hypothesis = hypothesis;
 								}
 								
-								scenario_event.setGroup(group);
+								hypothesis.setId(hypothesis_id);
+								scenario_event.setHypothesis(hypothesis);
 								
 								parsing_index = 0;
 							}
 							else if (parts[1].contains("Exemples")) {
 								Example example = parseExample(content);
 								scenario_event.setExample(example);
-								scenario_event.setGroup(0);
 								
 								parsing_index = 0;
 							}

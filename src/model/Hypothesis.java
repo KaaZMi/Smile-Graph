@@ -5,6 +5,7 @@ import java.util.ArrayList;
 public class Hypothesis {
 	private ArrayList<Prototype> prototypes;
 	private boolean consistent;
+	private int id;
 
 	public Hypothesis(ArrayList<Prototype> prototypes, boolean consistent) {
 		this.prototypes = prototypes;
@@ -27,8 +28,16 @@ public class Hypothesis {
 		this.consistent = consistent;
 	}
 
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
 	@Override
 	public String toString() {
-		return "Hypothesis [prototypes=" + prototypes + ", consistent=" + consistent + "]";
+		return "Hypothesis [id=" + id + ", prototypes=" + prototypes + ", consistent=" + consistent + "]";
 	}
 }

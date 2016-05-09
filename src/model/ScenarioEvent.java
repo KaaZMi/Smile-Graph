@@ -5,7 +5,6 @@ public class ScenarioEvent {
 	private String source;
 	private String destination;
 	private String type;
-	private int group;
 	private Example example;
 	private Hypothesis hypothesis;
 
@@ -41,14 +40,6 @@ public class ScenarioEvent {
 		this.type = type;
 	}
 	
-	public int getGroup() {
-		return group;
-	}
-
-	public void setGroup(int group) {
-		this.group = group;
-	}
-	
 	public Example getExample() {
 		return example;
 	}
@@ -68,7 +59,7 @@ public class ScenarioEvent {
 	@Override
 	public String toString() {
 		return "ScenarioEvent [css_class=" + css_class + ", source=" + source + ", destination=" + destination
-				+ ", type=" + type + ", group=" + group + ", example=" + example + ", hypothesis=" + hypothesis + "]";
+				+ ", type=" + type + ", example=" + example + ", hypothesis=" + hypothesis + "]";
 	}
 	
 
