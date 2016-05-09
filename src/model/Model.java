@@ -102,7 +102,7 @@ public class Model extends Observable {
 			int loop = 0; // DEV
 			String css_class = null;
 			boolean etudier_cette_ligne = false;
-			Hypothesis previous_hypothesis = new Hypothesis(new ArrayList<Prototype>());
+			Hypothesis previous_hypothesis = new Hypothesis(new ArrayList<Prototype>(),false);
 			int group = 0;
 
 			// tant qu'une ligne non vide est lisible
@@ -252,7 +252,7 @@ public class Model extends Observable {
 			prototypes.add(new Prototype(atoms));
 		}
 		
-		return new Hypothesis(prototypes);
+		return new Hypothesis(prototypes, false);
 	}
 	
 	@SuppressWarnings("unchecked")

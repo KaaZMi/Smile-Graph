@@ -47,6 +47,7 @@ import org.graphstream.ui.view.ViewerPipe;
 
 import controler.Controler;
 import model.Example;
+import model.Hypothesis;
 import model.Prototype;
 import model.Model;
 import model.ScenarioEvent;
@@ -606,15 +607,13 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				// it interrupts the waiting thread and throws the exception InterruptedException
 				scenario_execution.interrupt();
 				try {
-					// wait until the thread finishes
-					scenario_execution.join();
+					scenario_execution.join(); // wait until the thread finishes
 				} catch (InterruptedException e1) {
 					e1.printStackTrace();
 				};
 				
-				// each sprite is removed
 				for(Sprite sprite: sman) {
-					sman.removeSprite(sprite.getId());
+					sman.removeSprite(sprite.getId()); // each sprite is removed
 				}
 				
 				// memory of the nodes is reset
@@ -682,6 +681,9 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	 * Update of a node according to information that reached it.
 	 */
 	private void updateNode(ScenarioEvent se) {
+		/*
+		 * If an agent receives new examples, they are added to his memory.
+		 */
 		if (se.getType().contains("Nouveaux Exemples")) {
 			Node node_destination = graph.getNode(se.getDestination());
 			ArrayList<Example> memory = node_destination.getAttribute("memory");
@@ -690,77 +692,32 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			node_destination.setAttribute("ui.size", memory.size()+25);
 			System.out.println(memory);
 		}
-//		else if (se.getType().contains("Hypothese a tester")) {
-//			Node node_destination = graph.getNode(se.getDestination());
-//			LinkedHashMap<Integer,Formula> memory = node_destination.getAttribute("memory");
-//			/*
-//			 * For each formula of the message, we will see if the memory contains the formula.
-//			 * If not, the formula is added to the memory by putting it at the end of the memory.
-//			 */
-//			for (Formula formula : se.getFormulas()) {
-//				Iterator<Entry<Integer, Formula>> iterator = memory.entrySet().iterator();
-//				int lastKey = 0;
-//				boolean formula_already_memorised = false;
-//			    while (iterator.hasNext()) {
-//			        lastKey = iterator.next().getKey();
-//			        if (memory.get(lastKey).compareTo(formula)) {
-//			        	formula_already_memorised = true;
-//			        }
-//			    }
-//			    
-//			    if (!formula_already_memorised) {
-//			    	memory.put(lastKey + 1, formula);
-//			    }
-//			}
-//			node_destination.setAttribute("memory", memory);
-//		}
-//		
-//		else if (se.getType().contains("Hypothese confirmee")) {
-//			Node node = graph.getNode(se.getSource());
-//			LinkedHashMap<Integer,Formula> memory = node.getAttribute("memory");
-//			// looking for the formula in the memory
-//			for (Formula formula : se.getFormulas()) {
-//				for (Entry<Integer, Formula> entry : memory.entrySet()) {
-//			        if (entry.getValue().compareTo(formula)) {
-//			        	// update the entry by putting the same formula but this time accepted
-//			            memory.put(entry.getKey(), new Formula(formula.getContent(),true));
-//			        }
-//			    }
-//			}
-//			node.setAttribute("memory", memory);
-//		}
-//		
-//		else if (se.getType().contains("Hypothese SMA-consistante")) {
-//			Node node_source = graph.getNode(se.getSource());
-//			Node node_destination = graph.getNode(se.getDestination());
-//			LinkedHashMap<Integer,Formula> memory_source = node_source.getAttribute("memory");
-//			LinkedHashMap<Integer,Formula> memory_destination = node_destination.getAttribute("memory");
-//			for (Formula formula : se.getFormulas()) {
-//				for (Entry<Integer, Formula> entry : memory_source.entrySet()) {
-//			        if (entry.getValue().compareTo(formula)) {
-//			        	// update the entry by putting the same formula but this time consistent
-//			        	memory_source.put(entry.getKey(), new Formula(formula.getContent(),true,true));
-//			        }
-//			    }
-//				for (Entry<Integer, Formula> entry : memory_destination.entrySet()) {
-//			        if (entry.getValue().compareTo(formula)) {
-//			        	// update the entry by putting the same formula but this time consistent
-//			        	memory_destination.put(entry.getKey(), new Formula(formula.getContent(),true,true));
-//			        }
-//			    }
-//			}
-//			node_source.setAttribute("memory", memory_source);
-//			node_destination.setAttribute("memory", memory_destination);
-//		}
 		
-		// DEV
-//		if (node != null) {
-//			System.out.println("NODE : " + node.getId() + "********");
-//			for (Entry<Integer, Formula> entry : memory.entrySet()) {
-//		        System.out.println(memory.get(entry.getKey()));
-//		    }
-//			System.out.println("***********************************");
-//		}
+		/*
+		 * If an agent sends a hypothesis to test, it's his hypothesis.
+		 */
+		else if (se.getType().contains("Hypothese a tester")) {
+			Node node_source = graph.getNode(se.getSource());
+			node_source.setAttribute("hypothesis", se.getHypothesis());
+			System.out.println(node_source.getAttribute("hypothesis").toString());
+		}
+		
+		/*
+		 * If an agent accepts a hypothesis, he adopts it.
+		 */
+		else if (se.getType().contains("Hypothese confirmee")) {
+			Node node_source = graph.getNode(se.getSource());
+			node_source.setAttribute("hypothesis", se.getHypothesis());
+			System.out.println(node_source.getAttribute("hypothesis").toString());
+		}
+		
+		else if (se.getType().contains("Hypothese SMA-consistante")) {
+			Node node_source = graph.getNode(se.getSource());
+			Hypothesis h = se.getHypothesis();
+			h.setConsistent(true);
+			node_source.setAttribute("hypothesis", h);
+			System.out.println(node_source.getAttribute("hypothesis").toString());
+		}
 		
 	}
 	
