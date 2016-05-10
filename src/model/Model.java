@@ -1,11 +1,14 @@
 package model;
 
+import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Observable;
@@ -21,14 +24,17 @@ import org.xml.sax.SAXException;
 
 public class Model extends Observable {
 
-	private LinkedHashMap<String, ArrayList<String>> edges = new LinkedHashMap<String, ArrayList<String>>();
-	private ArrayList<ScenarioEvent> events = new ArrayList<ScenarioEvent>();
+	private LinkedHashMap<String, List<String>> edges = new LinkedHashMap<String, List<String>>();
+	private List<ScenarioEvent> events = new ArrayList<ScenarioEvent>();
 	private int cursor = 0; // current position of the scenario
 	
 	private boolean graphLoaded = false;
 	private boolean scenarioLoaded = false;
 	private int nbAgents = 0;
 	private static int parsing_index = 0; // index to browse the content of a message
+	
+	private List<Example> examples = new ArrayList<Example>(); // it will help us to generate colors for each example
+	private HashMap<String,String> tags_colors = new HashMap<String,String>();
 
 	public boolean openXML(String path) {
 		final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -182,6 +188,10 @@ public class Model extends Observable {
 								Example example = parseExample(content);
 								scenario_event.setExample(example);
 								
+								if (!parts[1].contains("Contre")) {
+									examples.add(example);
+								}
+								
 								parsing_index = 0;
 							}
 							
@@ -197,6 +207,7 @@ public class Model extends Observable {
 //					}
 				}
 			}
+			getUniqueColors(this.examples);
 
 			br.close();
 		}
@@ -271,11 +282,30 @@ public class Model extends Observable {
 		return new Example(atoms,tags);
 	}
 	
-	public LinkedHashMap<String, ArrayList<String>> getEdges() {
+	/**
+	 * Compute a list of unique colors in order to assign each one to an example's tag.
+	 * @param examples
+	 */
+	public void getUniqueColors(List<Example> examples) {
+		List<Color> colors = new ArrayList<Color>();
+		
+		for (int i=0 ; i<examples.size() ; i++) {
+		    colors.add(Color.getHSBColor((float) i / examples.size(), 1, 1));
+		}
+		
+		Collections.shuffle(colors);
+		
+		for (int i=0 ; i<examples.size() ; i++) {
+			String rgb = "rgb(" + colors.get(i).getRed() + "," + colors.get(i).getGreen() + "," + colors.get(i).getBlue() + ")";
+		    tags_colors.put(examples.get(i).getTags().get(0),rgb);
+		}
+	}
+	
+	public LinkedHashMap<String, List<String>> getEdges() {
 		return edges;
 	}
 	
-	public ArrayList<ScenarioEvent> getEvents() {
+	public List<ScenarioEvent> getEvents() {
 		return events;
 	}
 
@@ -309,6 +339,22 @@ public class Model extends Observable {
 
 	public void setNbAgents(int nbAgents) {
 		this.nbAgents = nbAgents;
+	}
+
+	public List<Example> getExamples() {
+		return examples;
+	}
+
+	public void setExamples(List<Example> examples) {
+		this.examples = examples;
+	}
+
+	public HashMap<String, String> getTags_colors() {
+		return tags_colors;
+	}
+
+	public void setTags_colors(HashMap<String, String> tags_colors) {
+		this.tags_colors = tags_colors;
 	}
 
 }

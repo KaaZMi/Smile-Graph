@@ -10,6 +10,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Observable;
 import java.util.Observer;
@@ -209,8 +210,8 @@ public class Window extends JFrame implements Observer, ViewerListener {
 						sman = new SpriteManager(graph);
 						sman.setSpriteFactory(new mySpritesFactory());
 	
-						LinkedHashMap<String, ArrayList<String>> edges = model.getEdges();
-						for (Entry<String, ArrayList<String>> entry : edges.entrySet()) {
+						LinkedHashMap<String, List<String>> edges = model.getEdges();
+						for (Entry<String, List<String>> entry : edges.entrySet()) {
 							// add an undirected edge
 							graph.addEdge(entry.getKey(), entry.getValue().get(0), entry.getValue().get(1), false);
 						}
@@ -410,31 +411,33 @@ public class Window extends JFrame implements Observer, ViewerListener {
 							
 							if (!currently_moving) {
 								cursor = model.getCursor();
-								i = model.getEvents().get(cursor).getSource();
-								j = model.getEvents().get(cursor).getDestination();
+								ScenarioEvent se = model.getEvents().get(cursor);
+								i = se.getSource();
+								j = se.getDestination();
 								edge_id = getEdgebyNodes(i,j);
 								
-								System.out.println("----------------");
-								System.out.println(cursor + "/" + model.getEvents().get(cursor).toString());
-								System.out.println(edge_id);
-								System.out.println("----------------");
+								System.out.println(cursor + "/" + se.toString());
 								
 								sprite = (mySprite) sman.addSprite("s_" + edge_id);
 								sprite.attachToEdge(edge_id);
 								sprite.initEtat(i, j);
-								sprite.setAttribute("ui.class", model.getEvents().get(cursor).getCSSClass());
-								if (model.getEvents().get(cursor).getType().contains("Hypothese")) {
-									sprite.setAttribute("ui.label", model.getEvents().get(cursor).getHypothesis().getId());
+								sprite.setAttribute("ui.class", se.getCSSClass());
+								if (se.getType().contains("Hypothese")) {
+									sprite.setAttribute("ui.label", se.getHypothesis().getId());
+								}
+								else if (se.getType().contains("Nouveaux Exemples")) {
+									sprite.setAttribute("ui.style", "fill-color: " + model.getTags_colors().get(se.getExample().getTags().get(0)) + ";");
 								}
 							}
 							else {
 								/*
-								 * Recovering the ID of the edge and that 
-								 * of the attached sprite to continue its movement.
+								 * Recovering the ID of the edge and the
+								 * attached sprite to continue its movement.
 								 */
 								cursor = model.getCursor();
-								i = model.getEvents().get(cursor).getSource();
-								j = model.getEvents().get(cursor).getDestination();
+								ScenarioEvent se = model.getEvents().get(cursor);
+								i = se.getSource();
+								j = se.getDestination();
 								edge_id = getEdgebyNodes(i,j);
 								
 								sprite = (mySprite) sman.getSprite("s_" + edge_id);
@@ -459,27 +462,28 @@ public class Window extends JFrame implements Observer, ViewerListener {
 								 * until it returns false.
 								 */
 								if(!sprite.move()) {
-									updateNode(model.getEvents().get(cursor));									
+									updateNode(model.getEvents().get(cursor));							
 									
 									controler.incrementCursor();
 									sman.removeSprite(sprite.getId());
 									
 									cursor = model.getCursor();
-									i = model.getEvents().get(cursor).getSource();
-									j = model.getEvents().get(cursor).getDestination();
+									ScenarioEvent se = model.getEvents().get(cursor);
+									i = se.getSource();
+									j = se.getDestination();
 									edge_id = getEdgebyNodes(i,j);
 									
-									System.out.println("----------------");
-									System.out.println(cursor + "/" + model.getEvents().get(cursor));
-									System.out.println(edge_id);
-									System.out.println("----------------");
+									System.out.println(cursor + "/" + se);
 									
 									sprite = (mySprite) sman.addSprite("s_" + edge_id);
 									sprite.attachToEdge(edge_id);
 									sprite.initEtat(i, j);
-									sprite.setAttribute("ui.class", model.getEvents().get(cursor).getCSSClass());
-									if (model.getEvents().get(cursor).getType().contains("Hypothese")) {
-										sprite.setAttribute("ui.label", model.getEvents().get(cursor).getHypothesis().getId());
+									sprite.setAttribute("ui.class", se.getCSSClass());
+									if (se.getType().contains("Hypothese")) {
+										sprite.setAttribute("ui.label", se.getHypothesis().getId());
+									}
+									else if (se.getType().contains("Nouveaux Exemples")) {
+										sprite.setAttribute("ui.style", "fill-color: " + model.getTags_colors().get(se.getExample().getTags().get(0)) + ";");
 									}
 								}
 								
@@ -529,31 +533,33 @@ public class Window extends JFrame implements Observer, ViewerListener {
 						
 						if (!currently_moving) {
 							cursor = model.getCursor();
-							i = model.getEvents().get(cursor).getSource();
-							j = model.getEvents().get(cursor).getDestination();
+							ScenarioEvent se = model.getEvents().get(cursor);
+							i = se.getSource();
+							j = se.getDestination();
 							edge_id = getEdgebyNodes(i,j);
 							
-							System.out.println("----------------");
-							System.out.println(cursor + "/" + model.getEvents().get(cursor));
-							System.out.println(edge_id);
-							System.out.println("----------------");
+							System.out.println(cursor + "/" + se);
 							
 							sprite = (mySprite) sman.addSprite("s_" + edge_id);
 							sprite.attachToEdge(edge_id);
 							sprite.initEtat(i, j);
-							sprite.setAttribute("ui.class", model.getEvents().get(cursor).getCSSClass());
-							if (model.getEvents().get(cursor).getType().contains("Hypothese")) {
-								sprite.setAttribute("ui.label", model.getEvents().get(cursor).getHypothesis().getId());
+							sprite.setAttribute("ui.class", se.getCSSClass());
+							if (se.getType().contains("Hypothese")) {
+								sprite.setAttribute("ui.label", se.getHypothesis().getId());
+							}
+							else if (se.getType().contains("Nouveaux Exemples")) {
+								sprite.setAttribute("ui.style", "fill-color: " + model.getTags_colors().get(se.getExample().getTags().get(0)) + ";");
 							}
 						}
 						else {
 							/*
-							 * Recovering the ID of the edge and that 
-							 * of the attached sprite to continue its movement.
+							 * Recovering the ID of the edge and the
+							 * attached sprite to continue its movement.
 							 */
 							cursor = model.getCursor();
-							i = model.getEvents().get(cursor).getSource();
-							j = model.getEvents().get(cursor).getDestination();
+							ScenarioEvent se = model.getEvents().get(cursor);
+							i = se.getSource();
+							j = se.getDestination();
 							edge_id = getEdgebyNodes(i,j);
 							
 							sprite = (mySprite) sman.getSprite("s_" + edge_id);
@@ -833,7 +839,6 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			"	stroke-color: purple;"+
 			"}"+
 			"sprite.new_examples {"+
-			"	fill-color: cyan;"+
 			"	shape: rounded-box;"+
 			"}"+
 			"sprite.counter_examples {"+
