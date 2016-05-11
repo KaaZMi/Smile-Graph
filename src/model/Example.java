@@ -1,7 +1,11 @@
 package model;
 
+import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents both an example or counter-example
+ */
 public class Example extends Prototype {
 	private List<String> tags;
 
@@ -22,9 +26,24 @@ public class Example extends Prototype {
 	public String toString() {
 		return "Example [tags=" + tags + ", atoms=" + super.getAtoms() + "]";
 	}
-	
-	public boolean compareTo(List<String> tags) {
-		return this.tags.equals(tags);
+
+	/**
+	 * Compare this example to another according to their tags
+	 * @param tags
+	 * @return true if they're equal, otherwise false if they're not equal
+	 */
+	public boolean compareTo(List<String> tags) {	
+		List<String> tags1 = new ArrayList<String>(this.getTags());
+		List<String> tags2 = new ArrayList<String>(tags);
+
+		if(tags1 != null && tags2 != null && (tags1.size() == tags2.size())) {
+			tags1.removeAll(tags2);
+			if(tags1.isEmpty()) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 }

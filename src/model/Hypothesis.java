@@ -41,17 +41,17 @@ public class Hypothesis {
 	public String toString() {
 		return "Hypothesis [id=" + id + ", prototypes=" + prototypes + ", consistent=" + consistent + "]";
 	}
-	
+
 	public boolean compareTo(Hypothesis h) {
 		int nb_equals = 0;
 		for (Prototype p1 : h.getPrototypes())
 			for (Prototype p2 : this.getPrototypes())
 				if (p1.compareTo(p2))
 					nb_equals++;
-		
+
 		if (nb_equals*2 == h.getPrototypes().size()+this.getPrototypes().size())
 			return true;
-		
+
 		return false;
 	}
 }

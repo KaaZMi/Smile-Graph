@@ -27,12 +27,12 @@ public class Model extends Observable {
 	private LinkedHashMap<String, List<String>> edges = new LinkedHashMap<String, List<String>>();
 	private List<ScenarioEvent> events = new ArrayList<ScenarioEvent>();
 	private int cursor = 0; // current position of the scenario
-	
+
 	private boolean graphLoaded = false;
 	private boolean scenarioLoaded = false;
 	private int nbAgents = 0;
 	private static int parsing_index = 0; // index to browse the content of a message
-	
+
 	private List<Example> examples = new ArrayList<Example>(); // it will help us to generate colors for each example
 	private HashMap<String,String> tags_colors = new HashMap<String,String>();
 
@@ -65,7 +65,7 @@ public class Model extends Observable {
 						String i = "Ag" + arc.getAttribute("i");
 						String j = "Ag" + arc.getAttribute("j");
 						String id = "";
-						
+
 						// IMPORTANT : naming convention of ID : AB-BA with A < B
 						if (Integer.parseInt(i.substring(i.length()-1)) < Integer.parseInt(j.substring(j.length()-1))) {
 							id = i+"-"+j+"-"+j+"-"+i;
@@ -73,12 +73,12 @@ public class Model extends Observable {
 						else {
 							id = j+"-"+i+"-"+i+"-"+j;
 						}
-						
+
 						ArrayList<String> nodes = new ArrayList<String>();
 						nodes.add(i);
 						nodes.add(j);
 						edges.put(id, nodes);
-						
+
 						// display of the edge's ID
 						System.out.println("\n************ARC***********");
 						System.out.println(id);
@@ -95,20 +95,20 @@ public class Model extends Observable {
 		catch (final IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		setGraphLoaded(true);
 		setChanged();
 		notifyObservers();
 		return true;
 	}
-	
+
 	public boolean openLOG(String path) {
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(path));
 			String line = null;
-			
+
 			int loop = 0; // DEV
-			
+
 			String css_class = null;
 			boolean etudier_cette_ligne = false;
 			Hypothesis previous_hypothesis = new Hypothesis(new ArrayList<Prototype>(),false);
@@ -151,7 +151,7 @@ public class Model extends Observable {
 					if (etudier_cette_ligne) {
 						// separate source and destination
 						String[] agents = parts[0].trim().split("->");
-						
+
 						/*
 						 * Create a ScenarioEvent object to handle the content of the messages.
 						 */
@@ -163,14 +163,14 @@ public class Model extends Observable {
 						// if the event has a content
 						if (parts.length > 2) {
 							ArrayList<Object> content = buildList(parts[2].trim());
-							
+
 							/*
 							 * The structure is different depending on the type of the message.
 							 * Therefore we treat differently hypotheses and examples.
 							 */
 							if (parts[1].contains("Hypothese")) {
 								Hypothesis hypothesis = parseHypothesis(content);
-								
+
 								/*
 								 * Compare the prototypes of this event to the prototypes of the previous event.
 								 */
@@ -178,49 +178,47 @@ public class Model extends Observable {
 									hypothesis_id++;
 									previous_hypothesis = hypothesis;
 								}
-								
+
 								hypothesis.setId(hypothesis_id);
 								scenario_event.setHypothesis(hypothesis);
-								
+
 								parsing_index = 0;
 							}
 							else if (parts[1].contains("Exemples")) {
 								Example example = parseExample(content);
 								scenario_event.setExample(example);
-								
-								if (!parts[1].contains("Contre")) {
-									examples.add(example);
-								}
-								
+
+								examples.add(example);
+
 								parsing_index = 0;
 							}
-							
+
 						}
 
 						this.events.add(scenario_event); // add the current event to the map
 					}
 
 					// DEV : juste pour pas lire tout le fichier
-//					loop++;
-//					if (loop>225){
-//						break;
-//					}
+					//					loop++;
+					//					if (loop>225){
+					//						break;
+					//					}
 				}
 			}
-			getUniqueColors(this.examples);
-
+			
+			this.tags_colors = generateUniqueColors(this.examples);
 			br.close();
 		}
 		catch (final IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		setScenarioLoaded(true);
 		setChanged();
 		notifyObservers();
 		return true;
 	}
-	
+
 	/**
 	 * Transform a string which contains nested array to a real array
 	 * @param str
@@ -232,7 +230,7 @@ public class Model extends Observable {
 
 		while (parsing_index < str.length()) {
 			char c = str.charAt(parsing_index++);
-			
+
 			if (c == '[') {
 				if (!stack.trim().equals("") && !stack.trim().equals(",")) {
 					list.add(stack.trim()); // add the current stack to the current list
@@ -251,60 +249,67 @@ public class Model extends Observable {
 				stack += c;
 			}
 		}
-		
-	    return list;
+
+		return list;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public Hypothesis parseHypothesis(ArrayList<Object> content) {
 		ArrayList<Object> level_1 = (ArrayList<Object>) content.get(0);
 		ArrayList<Object> level_prototype = (ArrayList<Object>) level_1.get(1); // .get(0) is the class
-		
+
 		ArrayList<Prototype> prototypes = new ArrayList<Prototype>();
 		for (int i = 0 ; i < level_prototype.size() ; i+=3) {
 			ArrayList<String> level_atoms = (ArrayList<String>) level_prototype.get(i);
 			List<String> atoms = new ArrayList<String>(Arrays.asList(level_atoms.get(0).split(", ")));
 			prototypes.add(new Prototype(atoms));
 		}
-		
+
 		return new Hypothesis(prototypes, false);
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public Example parseExample(ArrayList<Object> content) {
 		ArrayList<Object> level_1 = (ArrayList<Object>) content.get(0);
-		
+
 		ArrayList<String> level_atoms = (ArrayList<String>) level_1.get(1);
 		List<String> atoms = new ArrayList<String>(Arrays.asList(level_atoms.get(0).split(", ")));
 		ArrayList<String> level_tags = (ArrayList<String>) level_1.get(3);
 		List<String> tags = new ArrayList<String>(Arrays.asList(level_tags.get(0).split(", ")));
-		
+
 		return new Example(atoms,tags);
 	}
-	
+
 	/**
 	 * Compute a list of unique colors in order to assign each one to an example's tag.
+	 * Only the hue varies in order to have the most different possible colors.
 	 * @param examples
+	 * @return 
 	 */
-	public void getUniqueColors(List<Example> examples) {
+	public HashMap<String, String> generateUniqueColors(List<Example> examples) {
 		List<Color> colors = new ArrayList<Color>();
-		
+		HashMap<String,String> tags_colors = new HashMap<String,String>();
+
+		// fill an array of colors
 		for (int i=0 ; i<examples.size() ; i++) {
-		    colors.add(Color.getHSBColor((float) i / examples.size(), 1, 1));
+			colors.add(Color.getHSBColor((float) i / examples.size(), 1, 1));
 		}
-		
-		Collections.shuffle(colors);
-		
+
+		Collections.shuffle(colors); // colors are mixed randomly
+
+		// transform each color in a readable format by GraphStream and assign it to a tag
 		for (int i=0 ; i<examples.size() ; i++) {
 			String rgb = "rgb(" + colors.get(i).getRed() + "," + colors.get(i).getGreen() + "," + colors.get(i).getBlue() + ")";
-		    tags_colors.put(examples.get(i).getTags().get(0),rgb);
+			tags_colors.put(examples.get(i).getTags().toString(),rgb);
 		}
+		
+		return tags_colors;
 	}
-	
+
 	public LinkedHashMap<String, List<String>> getEdges() {
 		return edges;
 	}
-	
+
 	public List<ScenarioEvent> getEvents() {
 		return events;
 	}

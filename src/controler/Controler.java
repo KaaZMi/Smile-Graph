@@ -4,11 +4,11 @@ import model.Model;
 import view.Window;
 
 public class Controler {
-	
+
 	private Window view = null;
 	private Model model;
-	
-	
+
+
 	public Controler(Model mod){
 		this.model = mod;
 	}
@@ -19,11 +19,11 @@ public class Controler {
 		// ...
 		return model.openXML(path);
 	}
-	
+
 	public boolean openLOG(String path) {
 		return model.openLOG(path);
 	}
-	
+
 	public void addView(Window view) {
 		this.view = view ;
 	}
@@ -32,21 +32,24 @@ public class Controler {
 		model.setCursor((model.getCursor()+1));
 		control();
 	}
-	
+
 	public void decrementCursor() {
 		model.setCursor((model.getCursor()-1));
 		control();
 	}
-	
+
 	public void resetCursor() {
 		model.setCursor(0);
 		control();
 	}
 
 	public void control() {
-		if ( view != null ) {
-			if ( model.getCursor() > model.getEvents().size()) {
-				// TODO : gérer affichage des erreurs dans la vue
+		if (view != null) {
+			if (model.getCursor() > model.getEvents().size()) {
+				view.enableWarning();
+			}
+			else {
+				view.disableWarning();
 			}
 		}
 	}

@@ -11,35 +11,35 @@ public class ScenarioEvent {
 	public String getCSSClass() {
 		return css_class;
 	}
-	
+
 	public void setCSSClass(String css_class) {
 		this.css_class = css_class;
 	}
-	
+
 	public String getSource() {
 		return source;
 	}
-	
+
 	public void setSource(String source) {
 		this.source = source;
 	}
-	
+
 	public String getDestination() {
 		return destination;
 	}
-	
+
 	public void setDestination(String destination) {
 		this.destination = destination;
 	}
-	
+
 	public String getType() {
 		return type;
 	}
-	
+
 	public void setType(String type) {
 		this.type = type;
 	}
-	
+
 	public Example getExample() {
 		return example;
 	}
@@ -47,7 +47,7 @@ public class ScenarioEvent {
 	public void setExample(Example example) {
 		this.example = example;
 	}
-	
+
 	public Hypothesis getHypothesis() {
 		return hypothesis;
 	}
@@ -61,6 +61,6 @@ public class ScenarioEvent {
 		return "ScenarioEvent [css_class=" + css_class + ", source=" + source + ", destination=" + destination
 				+ ", type=" + type + ", example=" + example + ", hypothesis=" + hypothesis + "]";
 	}
-	
+
 
 }

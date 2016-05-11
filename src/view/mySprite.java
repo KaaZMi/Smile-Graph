@@ -6,15 +6,15 @@ import org.graphstream.ui.spriteManager.SpriteManager;
 public class mySprite extends Sprite {
 	private double step = 0.01;
 	private boolean direction = true;
-	
+
 	public mySprite(String identifier, SpriteManager manager) {
 		super(identifier, manager);
 	}
-	
+
 	public void setDirection(boolean direction) {
 		this.direction = direction;
 	}
-	
+
 	/**
 	 * Defines the position and direction of the sprite depending on the source and destination.
 	 * @param i Source
@@ -31,7 +31,7 @@ public class mySprite extends Sprite {
 				this.setPosition(1);
 			}
 		}
-		
+
 		else {
 			i = i.substring(i.length()-1);
 			j = j.substring(j.length()-1);
@@ -51,12 +51,12 @@ public class mySprite extends Sprite {
 	 */
 	public boolean move() {
 		double p = getX();
-		
+
 		if(direction)
 			p += step;
 		else
 			p -= step;
-		
+
 		// the sprite came to the end of the edge
 		if(p<0 || p>1) {
 			return false;

@@ -79,7 +79,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	private JTextField node_field = null;
 	private JButton node_button = null;
 	private JTextArea node_data = null;
-	
+
 	private JButton prevButton = null;
 	private JButton play_pauseButton = null;
 	private JButton nextButton = null;
@@ -118,24 +118,24 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		container.setBackground(Color.red); // DEV
 		setContentPane(this.container); // warn our JFrame that the JPanel will constitute its content pane
 		getContentPane().setLayout(new BorderLayout()); // choosing the layout manager
-		
+
 		side_panel = new JPanel();
 		side_panel.setBorder(new EmptyBorder(10, 10, 10, 10));
 		side_panel.setLayout(new GridBagLayout());
 		side_panel.setPreferredSize(new Dimension(300, container.getHeight()));
-		
+
 		String html = "<html>\n"
-                  + "<body>\n"
-                  + "<h2>Graph ?</h2>\n"
-                  + "<p>" + model.isGraphLoaded() + "</p>\n"
-                  + "<h2>Scenario ?</h2>\n"
-                  + "<p>" + model.isScenarioLoaded() + "</p>\n"
-                  + "<h2>Number of agents</h2>\n"
-                  + "<p>" + model.getNbAgents() + "</p>\n"
-                  + "</body>\n"
-                  + "</html>";
+				+ "<body>\n"
+				+ "<h2>Graph ?</h2>\n"
+				+ "<p>" + model.isGraphLoaded() + "</p>\n"
+				+ "<h2>Scenario ?</h2>\n"
+				+ "<p>" + model.isScenarioLoaded() + "</p>\n"
+				+ "<h2>Number of agents</h2>\n"
+				+ "<p>" + model.getNbAgents() + "</p>\n"
+				+ "</body>\n"
+				+ "</html>";
 		setDisplay(html);
-		
+
 		node_field = new JTextField();
 		node_button = new JButton("Get info");
 		node_data = new JTextArea();
@@ -147,16 +147,16 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				container.revalidate();
 			}
 		});
-		
+
 		GridBagConstraints c = null;
-		
+
 		c = new GridBagConstraints();
 		c.gridx = 0;
 		c.gridy = 0;
 		c.gridwidth = 3;
-	    c.fill = GridBagConstraints.HORIZONTAL;
+		c.fill = GridBagConstraints.HORIZONTAL;
 		side_panel.add(display, c);
-		
+
 		c = new GridBagConstraints();
 		c.gridx = 0;
 		c.gridy = 2;
@@ -164,7 +164,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		c.fill = GridBagConstraints.NONE;
 		c.weightx = 0;
 		side_panel.add(new JLabel("Node : "), c);
-		
+
 		c = new GridBagConstraints();
 		c.gridx = 1;
 		c.gridy = 2;
@@ -172,7 +172,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.weightx = 1.0;
 		side_panel.add(node_field, c);
-		
+
 		c = new GridBagConstraints();
 		c.gridx = 2;
 		c.gridy = 2;
@@ -180,14 +180,14 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		c.fill = GridBagConstraints.NONE;
 		c.weightx = 0;
 		side_panel.add(node_button, c);
-		
+
 		c = new GridBagConstraints();
 		c.gridx = 0;
 		c.gridy = 3;
 		c.gridwidth = 3;
 		c.fill = GridBagConstraints.HORIZONTAL;
 		side_panel.add(node_data, c);
-		
+
 		container.add(side_panel, BorderLayout.EAST);
 	}
 
@@ -206,18 +206,18 @@ public class Window extends JFrame implements Observer, ViewerListener {
 						graph = new MultiGraph("embedded");
 						graph.setStrict(false);
 						graph.setAutoCreate(true); // automatic creation of nodes depending edges
-						
+
 						sman = new SpriteManager(graph);
 						sman.setSpriteFactory(new mySpritesFactory());
-	
+
 						LinkedHashMap<String, List<String>> edges = model.getEdges();
 						for (Entry<String, List<String>> entry : edges.entrySet()) {
 							// add an undirected edge
 							graph.addEdge(entry.getKey(), entry.getValue().get(0), entry.getValue().get(1), false);
 						}
-						
+
 						graph.addNode("System");
-						
+
 						for (Node node : graph) {
 							if (node.getId().equals("System")) {
 								node.setAttribute("ui.label", node.getId());
@@ -229,18 +229,18 @@ public class Window extends JFrame implements Observer, ViewerListener {
 								graph.addEdge("System-"+node.getId()+"-"+node.getId()+"-System", "System", node.getId()).addAttribute("ui.class", "system");
 								node.setAttribute("memory", new ArrayList<Example>());
 							}
-							
+
 						}
-						
+
 						graph.addAttribute("ui.antialias"); // graphics smoothing
 						graph.addAttribute("ui.quality");
 						graph.addAttribute("ui.stylesheet", STYLESHEET); // CSS style of the graph
-	
+
 						viewer = new Viewer(graph, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
 						viewer.enableAutoLayout();
 						view_panel = viewer.addDefaultView(false); // false indicates "no JFrame"
 						// TODO : view_panel.addMouseWheelListener(new MyMouseListener());
-	
+
 						/* IMPORTANT !
 						 * We connect back the viewer to the graph,
 						 * the graph becomes a sink for the viewer.
@@ -251,7 +251,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 						fromViewer.addSink(graph);
 						fromViewer.addViewerListener(Window.this);
 						fromViewer.pump();
-						
+
 						container.add((Component) view_panel, BorderLayout.CENTER);
 						autolayout.setEnabled(true);
 					}
@@ -297,7 +297,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		file.add(save);
 		file.addSeparator();
 		file.add(exit);
-		
+
 		options = new JMenu("Options");
 
 		autolayout = new JCheckBoxMenuItem("Auto-layout");
@@ -310,7 +310,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			}
 		});
 		autolayout.setEnabled(false);
-		
+
 		speed_menu = new JMenu("Execution speed");
 		ButtonGroup speed_group = new ButtonGroup();
 		speed_slow = new JRadioButtonMenuItem("Slow");
@@ -322,7 +322,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		speed_group.add(speed_normal);
 		speed_group.add(speed_fast);
 		speed_group.add(speed_extrafast);
-		
+
 		speed_slow.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e){
 				setSpeed(30);
@@ -343,12 +343,12 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				setSpeed(0);
 			}
 		});
-		
+
 		speed_menu.add(speed_slow);
 		speed_menu.add(speed_normal);
 		speed_menu.add(speed_fast);
 		speed_menu.add(speed_extrafast);
-		
+
 		speed_menu.setEnabled(false);
 
 		options.add(autolayout);
@@ -394,12 +394,12 @@ public class Window extends JFrame implements Observer, ViewerListener {
 					prevButton.setEnabled(true);
 					stopButton.setEnabled(true);
 				}
-				
+
 				if (!play) {
 					play = true;
 					// switch between play/pause icon
 					((AbstractButton) e.getSource()).setIcon(new ImageIcon("playback_pause_icon&16.png"));
-					
+
 					// scenario execution in a separate thread
 					scenario_execution = new Thread() {
 						public void run() {
@@ -408,16 +408,16 @@ public class Window extends JFrame implements Observer, ViewerListener {
 							String j = null;
 							String edge_id = null;
 							mySprite sprite = null;
-							
+
 							if (!currently_moving) {
 								cursor = model.getCursor();
 								ScenarioEvent se = model.getEvents().get(cursor);
 								i = se.getSource();
 								j = se.getDestination();
 								edge_id = getEdgebyNodes(i,j);
-								
+
 								System.out.println(cursor + "/" + se.toString());
-								
+
 								sprite = (mySprite) sman.addSprite("s_" + edge_id);
 								sprite.attachToEdge(edge_id);
 								sprite.initEtat(i, j);
@@ -425,8 +425,8 @@ public class Window extends JFrame implements Observer, ViewerListener {
 								if (se.getType().contains("Hypothese")) {
 									sprite.setAttribute("ui.label", se.getHypothesis().getId());
 								}
-								else if (se.getType().contains("Nouveaux Exemples")) {
-									sprite.setAttribute("ui.style", "fill-color: " + model.getTags_colors().get(se.getExample().getTags().get(0)) + ";");
+								else if (se.getType().contains("Exemples")) {
+									sprite.setAttribute("ui.style", "fill-color: " + model.getTags_colors().get(se.getExample().getTags().toString()) + ";");
 								}
 							}
 							else {
@@ -439,42 +439,42 @@ public class Window extends JFrame implements Observer, ViewerListener {
 								i = se.getSource();
 								j = se.getDestination();
 								edge_id = getEdgebyNodes(i,j);
-								
+
 								sprite = (mySprite) sman.getSprite("s_" + edge_id);
 								currently_moving = false;
 							}
-							
+
 							/*
 							 * Each loop processes a movement, not necessarily an event.
 							 * Thus we have to detect at each loop if there is an event 
 							 * change or if it's just the updating of a sprite.
 							 */
 							while(loop) {
-								
+
 								/* We need to call the pump() method before each use 
 								 * of the graph to copy back events that have already 
 								 * occurred in the viewer thread inside our thread.
 								 */
 								fromViewer.pump();
-								
+
 								/*
 								 * We call the function which moves the sprite
 								 * until it returns false.
 								 */
 								if(!sprite.move()) {
 									updateNode(model.getEvents().get(cursor));							
-									
+
 									controler.incrementCursor();
 									sman.removeSprite(sprite.getId());
-									
+
 									cursor = model.getCursor();
 									ScenarioEvent se = model.getEvents().get(cursor);
 									i = se.getSource();
 									j = se.getDestination();
 									edge_id = getEdgebyNodes(i,j);
-									
+
 									System.out.println(cursor + "/" + se);
-									
+
 									sprite = (mySprite) sman.addSprite("s_" + edge_id);
 									sprite.attachToEdge(edge_id);
 									sprite.initEtat(i, j);
@@ -482,11 +482,11 @@ public class Window extends JFrame implements Observer, ViewerListener {
 									if (se.getType().contains("Hypothese")) {
 										sprite.setAttribute("ui.label", se.getHypothesis().getId());
 									}
-									else if (se.getType().contains("Nouveaux Exemples")) {
-										sprite.setAttribute("ui.style", "fill-color: " + model.getTags_colors().get(se.getExample().getTags().get(0)) + ";");
+									else if (se.getType().contains("Exemples")) {
+										sprite.setAttribute("ui.style", "fill-color: " + model.getTags_colors().get(se.getExample().getTags().toString()) + ";");
 									}
 								}
-								
+
 								try {
 									Thread.sleep(speed);
 								} catch (InterruptedException e) {
@@ -507,7 +507,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				else {
 					play = false;
 					((AbstractButton) e.getSource()).setIcon(new ImageIcon("playback_play_icon&16.png"));
-					
+
 					// it interrupts the waiting thread and throws the exception InterruptedException
 					scenario_execution.interrupt();
 				}
@@ -521,7 +521,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 					prevButton.setEnabled(true);
 					stopButton.setEnabled(true);
 				}
-				
+
 				// scenario execution in a separate thread
 				scenario_execution = new Thread() {
 					public void run() {
@@ -530,16 +530,16 @@ public class Window extends JFrame implements Observer, ViewerListener {
 						String j = null;
 						String edge_id = null;
 						mySprite sprite = null;
-						
+
 						if (!currently_moving) {
 							cursor = model.getCursor();
 							ScenarioEvent se = model.getEvents().get(cursor);
 							i = se.getSource();
 							j = se.getDestination();
 							edge_id = getEdgebyNodes(i,j);
-							
+
 							System.out.println(cursor + "/" + se);
-							
+
 							sprite = (mySprite) sman.addSprite("s_" + edge_id);
 							sprite.attachToEdge(edge_id);
 							sprite.initEtat(i, j);
@@ -547,8 +547,8 @@ public class Window extends JFrame implements Observer, ViewerListener {
 							if (se.getType().contains("Hypothese")) {
 								sprite.setAttribute("ui.label", se.getHypothesis().getId());
 							}
-							else if (se.getType().contains("Nouveaux Exemples")) {
-								sprite.setAttribute("ui.style", "fill-color: " + model.getTags_colors().get(se.getExample().getTags().get(0)) + ";");
+							else if (se.getType().contains("Exemples")) {
+								sprite.setAttribute("ui.style", "fill-color: " + model.getTags_colors().get(se.getExample().getTags().toString()) + ";");
 							}
 						}
 						else {
@@ -561,22 +561,22 @@ public class Window extends JFrame implements Observer, ViewerListener {
 							i = se.getSource();
 							j = se.getDestination();
 							edge_id = getEdgebyNodes(i,j);
-							
+
 							sprite = (mySprite) sman.getSprite("s_" + edge_id);
 						}
-						
+
 						/*
 						 * Each loop processes a movement until it reaches the 
 						 * destination node.
 						 */
 						while(loop) {
-							
+
 							/* We need to call the pump() method before each use 
 							 * of the graph to copy back events that have already 
 							 * occurred in the viewer thread inside our thread.
 							 */
 							fromViewer.pump();
-							
+
 							/*
 							 * We call the function which moves the sprite
 							 * until it returns false.
@@ -587,7 +587,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 								sman.removeSprite(sprite.getId());
 								break;
 							}
-							
+
 							try {
 								Thread.sleep(speed);
 							} catch (InterruptedException e2) {
@@ -614,7 +614,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				stopButton.setEnabled(false);
 				play_pauseButton.setIcon(new ImageIcon("playback_play_icon&16.png"));
 				play = false;
-				
+
 				// it interrupts the waiting thread and throws the exception InterruptedException
 				scenario_execution.interrupt();
 				try {
@@ -622,21 +622,21 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				} catch (InterruptedException e1) {
 					e1.printStackTrace();
 				};
-				
+
 				for(Sprite sprite: sman) {
 					sman.removeSprite(sprite.getId()); // each sprite is removed
 				}
-				
+
 				// memory of the nodes is reset
 				for (Node node : graph) {
 					node.setAttribute("memory", new ArrayList<Example>());
 				}
-				
+
 				currently_moving = false;
 				controler.resetCursor();
 			}
 		});
-		
+
 		prevButton.setFocusPainted(false);
 		play_pauseButton.setFocusPainted(false);
 		nextButton.setFocusPainted(false);
@@ -656,38 +656,38 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	@Override
 	public void update(Observable obs, Object obj) {
 		String html = "<html>\n"
-                + "<body>\n"
-                + "<h2>Graph ?</h2>\n"
-                + "<p>" + model.isGraphLoaded() + "</p>\n"
-                + "<h2>Scenario ?</h2>\n"
-                + "<p>" + model.isScenarioLoaded() + "</p>\n"
-                + "<h2>Number of agents</h2>\n"
-                + "<p>" + model.getNbAgents() + "</p>\n"
-                + "</body>\n"
-                + "</html>";
+				+ "<body>\n"
+				+ "<h2>Graph ?</h2>\n"
+				+ "<p>" + model.isGraphLoaded() + "</p>\n"
+				+ "<h2>Scenario ?</h2>\n"
+				+ "<p>" + model.isScenarioLoaded() + "</p>\n"
+				+ "<h2>Number of agents</h2>\n"
+				+ "<p>" + model.getNbAgents() + "</p>\n"
+				+ "</body>\n"
+				+ "</html>";
 		setDisplay(html);
 	}
-	
+
 	private String getEdgebyNodes(String i, String j) {
 		String id = "";
-		
+
 		if ( i.contains("System") || j.contains("System") ) {
 			if ( i.contains("System") )
 				id = "System-"+j+"-"+j+"-System";
 			else if ( j.contains("System") )
 				id = "System-"+i+"-"+i+"-System";
 		}
-		
+
 		else {
 			if (Integer.parseInt(i.substring(i.length()-1)) < Integer.parseInt(j.substring(j.length()-1)))
 				id = i+"-"+j+"-"+j+"-"+i;
 			else
 				id = j+"-"+i+"-"+i+"-"+j;
 		}
-		
+
 		return id;
 	}
-	
+
 	/**
 	 * Update of a node according to information that reached it.
 	 */
@@ -703,7 +703,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			node_destination.setAttribute("ui.size", memory.size()+25);
 			System.out.println(memory);
 		}
-		
+
 		/*
 		 * If an agent sends a hypothesis to test, it's his hypothesis.
 		 */
@@ -712,7 +712,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			node_source.setAttribute("hypothesis", se.getHypothesis());
 			System.out.println(node_source.getAttribute("hypothesis").toString());
 		}
-		
+
 		/*
 		 * If an agent accepts a hypothesis, he adopts it.
 		 */
@@ -721,7 +721,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			node_source.setAttribute("hypothesis", se.getHypothesis());
 			System.out.println(node_source.getAttribute("hypothesis").toString());
 		}
-		
+
 		else if (se.getType().contains("Hypothese SMA-consistante")) {
 			Node node_source = graph.getNode(se.getSource());
 			Hypothesis h = se.getHypothesis();
@@ -729,34 +729,44 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			node_source.setAttribute("hypothesis", h);
 			System.out.println(node_source.getAttribute("hypothesis").toString());
 		}
-		
+
 	}
-	
+
 	public String getNodeInfoByID(String node_id) {
 		Node n = graph.getNode(node_id);
 		LinkedHashMap<Integer,Prototype> memory = n.getAttribute("memory");
 		String node_info = "";
 		for (Entry<Integer, Prototype> entry : memory.entrySet()) {
 			node_info += entry.getValue().toString() + "\n";
-	    }
+		}
 		return node_info;
 	}
-	
+
 	public void setDisplay(String s) {
 		display.setText(s);
 	}
 	
+	public void enableWarning() {
+		// TODO
+		//side_panel.setBackground(Color.RED);
+	}
+	
+	public void disableWarning() {
+		// TODO
+		//side_panel.setBackground(Color.WHITE);
+	}
+
 	public void setSpeed(int speed) {
 		this.speed = speed;
 	}
-	
+
 	private class mySpritesFactory extends SpriteFactory {
 		@Override
 		public Sprite newSprite(String id, SpriteManager manager, Values position) {
 			return new mySprite(id, manager);
 		}
 	}
-	
+
 	/*
 	 *  ViewerListener interface
 	 */
@@ -773,78 +783,76 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		System.out.println("Noeud " + id + " relâché");
 	}
 	// --------------------------------
-	
-	
+
+
 	/*
 	 *  Style
 	 */
-	
 	static final String STYLESHEET = 
 			"graph {"+
-			"	fill-mode: gradient-radial;"+
-			"	fill-color: #FFFFFF,#EEEEEE;"+
-			"}"+
-			"edge {"+
-			"	size: 1.5px;"+
-			"	shape: line;"+
-			"	fill-color: #222222;"+
-			"	fill-mode: dyn-plain;"+
-			"	size-mode: dyn-size;"+
-			"}"+
-			"edge.system {"+
-			"	size: 0px;"+
-			"	shape: line;"+
-			"	fill-mode: none;"+
-			"	stroke-mode: dashes;"+
-			"	stroke-width: 1px;"+
-			"	stroke-color: #222222;"+
-			"}"+
-			"node {"+
-			"	size: 25;"+
-			"	shape: circle;"+
-			"	fill-mode: dyn-plain;"+
-			"	fill-color: #fad15f;"+
-			"	size-mode: dyn-size;"+
-			"	stroke-mode: plain;"+
-			"	stroke-width: 2px;"+
-			"	stroke-color: #333333;"+
-			"}"+
-			"node.system {"+
-			"	size: 40;"+
-			"	shape: rounded-box;"+
-			"	fill-mode: dyn-plain;"+
-			"	fill-color: #fad15f;"+
-			"	size-mode: dyn-size;"+
-			"	stroke-mode: plain;"+
-			"	stroke-width: 2px;"+
-			"	stroke-color: #333333;"+
-			"}"+
-			"sprite {"+
-			"	size: 20px;"+
-			"	fill-mode: plain;"+
-			"	stroke-mode: plain;"+
-			"	stroke-width: 2px;"+
-			"	stroke-color: #333333;"+
-			"	z-index: 4;"+
-			"}"+
-			"sprite.hypothesis_test {"+
-			"	fill-color: white;"+
-			"}"+
-			"sprite.hypothesis_accept {"+
-			"	fill-color: white;"+
-			"	stroke-color: green;"+
-			"}"+
-			"sprite.hypothesis_const {"+
-			"	fill-color: white;"+
-			"	stroke-color: purple;"+
-			"}"+
-			"sprite.new_examples {"+
-			"	shape: rounded-box;"+
-			"}"+
-			"sprite.counter_examples {"+
-			"	fill-color: red;"+
-			"	shape: cross;"+
-			"}"
-	;
+					"	fill-mode: gradient-radial;"+
+					"	fill-color: #FFFFFF,#EEEEEE;"+
+					"}"+
+					"edge {"+
+					"	size: 1.5px;"+
+					"	shape: line;"+
+					"	fill-color: #222222;"+
+					"	fill-mode: dyn-plain;"+
+					"	size-mode: dyn-size;"+
+					"}"+
+					"edge.system {"+
+					"	size: 0px;"+
+					"	shape: line;"+
+					"	fill-mode: none;"+
+					"	stroke-mode: dashes;"+
+					"	stroke-width: 1px;"+
+					"	stroke-color: #222222;"+
+					"}"+
+					"node {"+
+					"	size: 25;"+
+					"	shape: circle;"+
+					"	fill-mode: dyn-plain;"+
+					"	fill-color: #fad15f;"+
+					"	size-mode: dyn-size;"+
+					"	stroke-mode: plain;"+
+					"	stroke-width: 2px;"+
+					"	stroke-color: #333333;"+
+					"}"+
+					"node.system {"+
+					"	size: 40;"+
+					"	shape: rounded-box;"+
+					"	fill-mode: dyn-plain;"+
+					"	fill-color: #fad15f;"+
+					"	size-mode: dyn-size;"+
+					"	stroke-mode: plain;"+
+					"	stroke-width: 2px;"+
+					"	stroke-color: #333333;"+
+					"}"+
+					"sprite {"+
+					"	size: 20px;"+
+					"	fill-mode: plain;"+
+					"	stroke-mode: plain;"+
+					"	stroke-width: 2px;"+
+					"	stroke-color: #333333;"+
+					"	z-index: 4;"+
+					"}"+
+					"sprite.hypothesis_test {"+
+					"	fill-color: white;"+
+					"}"+
+					"sprite.hypothesis_accept {"+
+					"	fill-color: white;"+
+					"	stroke-color: green;"+
+					"}"+
+					"sprite.hypothesis_const {"+
+					"	fill-color: white;"+
+					"	stroke-color: purple;"+
+					"}"+
+					"sprite.new_examples {"+
+					"	shape: rounded-box;"+
+					"}"+
+					"sprite.counter_examples {"+
+					"	shape: cross;"+
+					"}"
+					;
 
 }
