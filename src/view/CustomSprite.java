@@ -3,11 +3,11 @@ package view;
 import org.graphstream.ui.spriteManager.Sprite;
 import org.graphstream.ui.spriteManager.SpriteManager;
 
-public class mySprite extends Sprite {
+public class CustomSprite extends Sprite {
 	private double step = 0.01;
 	private boolean direction = true;
 
-	public mySprite(String identifier, SpriteManager manager) {
+	public CustomSprite(String identifier, SpriteManager manager) {
 		super(identifier, manager);
 	}
 
