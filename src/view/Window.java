@@ -8,7 +8,14 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map.Entry;
@@ -33,9 +40,13 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.border.EmptyBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.graphstream.graph.*;
 import org.graphstream.graph.implementations.MultiGraph;
+import org.graphstream.stream.file.FileSinkDGS;
+import org.graphstream.stream.file.FileSource;
+import org.graphstream.stream.file.FileSourceFactory;
 import org.graphstream.ui.graphicGraph.stylesheet.Values;
 import org.graphstream.ui.spriteManager.Sprite;
 import org.graphstream.ui.spriteManager.SpriteFactory;
@@ -48,54 +59,54 @@ import org.graphstream.ui.view.ViewerPipe;
 import controler.Controler;
 import model.Example;
 import model.Hypothesis;
-import model.Prototype;
 import model.Model;
 import model.ScenarioEvent;
 
 @SuppressWarnings("serial")
 public class Window extends JFrame implements Observer, ViewerListener {
-	private boolean loop = true;
-	private ViewerPipe fromViewer = null;
-
-	private JMenuBar menu = null;
-	private JMenu file = null;
-	private JMenuItem openXML = null;
-	private JMenuItem openLOG = null;
-	private JMenuItem save = null;
-	private JMenuItem exit = null;
-	private JMenu options = null;
-	private JCheckBoxMenuItem autolayout = null;
-	private JMenu speed_menu = null;
-	private JMenuItem speed_slow = null;
-	private JMenuItem speed_normal = null;
-	private JMenuItem speed_fast = null;
-	private JMenuItem speed_extrafast = null;
-	private JMenu help = null;
-	private JMenuItem about = null;
-	private JPanel container = null;
-	private JPanel side_panel = null;
-	private JFileChooser fileChooser = null;
+	private JMenuBar menu;
+	private JMenu file;
+	private JMenuItem openXML;
+	private JMenuItem openLOG;
+	private JMenuItem openDGS;
+	private JMenuItem save;
+	private JMenuItem exit;
+	private JMenu options;
+	private JCheckBoxMenuItem autolayout;
+	private JMenu speed_menu;
+	private JMenuItem speed_slow;
+	private JMenuItem speed_normal;
+	private JMenuItem speed_fast;
+	private JMenuItem speed_extrafast;
+	private JMenu help;
+	private JMenuItem about;
+	private JPanel container;
+	private JPanel side_panel;
+	private JFileChooser fileChooser ;
 	private JLabel display = new JLabel();
-	private JTextField node_field = null;
-	private JButton node_button = null;
-	private JTextArea node_data = null;
+	private JTextField node_field ;
+	private JButton node_button;
+	private JTextArea node_data;
 
-	private JButton prevButton = null;
-	private JButton play_pauseButton = null;
-	private JButton nextButton = null;
-	private JButton stopButton = null;
-	private boolean play = false;
+	private JButton prevButton;
+	private JButton play_pauseButton;
+	private JButton nextButton;
+	private JButton stopButton;
 
 	private Controler controler;
 	private Model model;
 
-	private Graph graph = null;
-	private Viewer viewer = null;
-	private ViewPanel view_panel = null;
-	private Thread scenario_execution = null;
-	private SpriteManager sman = null;
+	private Graph graph;
+	private Viewer viewer;
+	private ViewPanel view_panel;
+	private ViewerPipe fromViewer;
+	private Thread scenario_execution;
+	private SpriteManager sman;
+	
+	private boolean play = false;
 	private boolean currently_moving = false; // is the scenario running ?
 	private int speed = 10;
+	private boolean loop = true;
 
 	public Window(Controler controler, Model model){
 		this.controler = controler;
@@ -200,6 +211,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		openXML.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent arg0){
 				fileChooser = new JFileChooser();
+				fileChooser.setFileFilter(new FileNameExtensionFilter("XML file (*.xml)", "xml"));
 				if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
 					String path = fileChooser.getSelectedFile().getAbsolutePath();
 					if(controler.openXML(path)) {
@@ -208,7 +220,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 						graph.setAutoCreate(true); // automatic creation of nodes depending edges
 
 						sman = new SpriteManager(graph);
-						sman.setSpriteFactory(new mySpritesFactory());
+						sman.setSpriteFactory(new CustomSpritesFactory());
 
 						LinkedHashMap<String, List<String>> edges = model.getEdges();
 						for (Entry<String, List<String>> entry : edges.entrySet()) {
@@ -229,7 +241,6 @@ public class Window extends JFrame implements Observer, ViewerListener {
 								graph.addEdge("System-"+node.getId()+"-"+node.getId()+"-System", "System", node.getId()).addAttribute("ui.class", "system");
 								node.setAttribute("memory", new ArrayList<Example>());
 							}
-
 						}
 
 						graph.addAttribute("ui.antialias"); // graphics smoothing
@@ -264,6 +275,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		openLOG.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent arg0){
 				fileChooser = new JFileChooser();
+				fileChooser.setFileFilter(new FileNameExtensionFilter("Text file (*.txt)", "txt"));
 				if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
 					String path = fileChooser.getSelectedFile().getAbsolutePath();
 					if(controler.openLOG(path)) {
@@ -275,12 +287,64 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				container.revalidate();
 			}	    	
 		});
+		
+		openDGS = new JMenuItem("Open a DGS graph");
+		openDGS.addActionListener(new ActionListener(){
+			@SuppressWarnings("unchecked")
+			public void actionPerformed(ActionEvent arg0){
+				fileChooser = new JFileChooser();
+				fileChooser.setFileFilter(new FileNameExtensionFilter("DGS file (*.dgs)", "dgs"));
+				if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+					String path = fileChooser.getSelectedFile().getAbsolutePath();
+					FileSource fs = null;
+					graph = new MultiGraph("embedded");
+					
+					try {
+						fs = FileSourceFactory.sourceFor(path);
+						fs.addSink(graph);
+						fs.readAll(path);
+					} catch (IOException e) {
+						e.printStackTrace();
+					} finally {
+						fs.removeSink(graph);
+					}
+					
+					for (Node node : graph) {
+						if (!node.getId().equals("System")) {
+							try {
+								node.setAttribute("memory", (ArrayList<Example>) fromBase64String(node.getAttribute("memory")));
+								node.setAttribute("hypothesis", (Hypothesis) fromBase64String(node.getAttribute("hypothesis")));
+							} catch (IOException | ClassNotFoundException e) {
+								e.printStackTrace();
+							}
+						}
+					}
+				}
+				container.revalidate();
+			}
+		});
 
 		save = new JMenuItem("Save");
 		save.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent arg0){
-				container.removeAll();
-				System.out.println("Enregistrer");
+				graph.setAttribute("cursor", model.getCursor());
+				for (Node node : graph) {
+					if (!node.getId().equals("System")) {
+						try {
+							node.setAttribute("memory", toBase64String(node.getAttribute("memory")));
+							node.setAttribute("hypothesis", toBase64String(node.getAttribute("hypothesis")));
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+				
+				FileSinkDGS fs = new FileSinkDGS();
+				try {
+					fs.writeAll(graph, "output.dgs");
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 				container.revalidate();
 			}
 		});
@@ -294,6 +358,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 
 		file.add(openXML);
 		file.add(openLOG);
+		file.add(openDGS);
 		file.add(save);
 		file.addSeparator();
 		file.add(exit);
@@ -407,7 +472,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 							String i = null;
 							String j = null;
 							String edge_id = null;
-							mySprite sprite = null;
+							CustomSprite sprite = null;
 
 							if (!currently_moving) {
 								cursor = model.getCursor();
@@ -418,7 +483,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 
 								System.out.println(cursor + "/" + se.toString());
 
-								sprite = (mySprite) sman.addSprite("s_" + edge_id);
+								sprite = (CustomSprite) sman.addSprite("s_" + edge_id);
 								sprite.attachToEdge(edge_id);
 								sprite.initEtat(i, j);
 								sprite.setAttribute("ui.class", se.getCSSClass());
@@ -440,7 +505,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 								j = se.getDestination();
 								edge_id = getEdgebyNodes(i,j);
 
-								sprite = (mySprite) sman.getSprite("s_" + edge_id);
+								sprite = (CustomSprite) sman.getSprite("s_" + edge_id);
 								currently_moving = false;
 							}
 
@@ -475,7 +540,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 
 									System.out.println(cursor + "/" + se);
 
-									sprite = (mySprite) sman.addSprite("s_" + edge_id);
+									sprite = (CustomSprite) sman.addSprite("s_" + edge_id);
 									sprite.attachToEdge(edge_id);
 									sprite.initEtat(i, j);
 									sprite.setAttribute("ui.class", se.getCSSClass());
@@ -529,7 +594,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 						String i = null;
 						String j = null;
 						String edge_id = null;
-						mySprite sprite = null;
+						CustomSprite sprite = null;
 
 						if (!currently_moving) {
 							cursor = model.getCursor();
@@ -540,7 +605,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 
 							System.out.println(cursor + "/" + se);
 
-							sprite = (mySprite) sman.addSprite("s_" + edge_id);
+							sprite = (CustomSprite) sman.addSprite("s_" + edge_id);
 							sprite.attachToEdge(edge_id);
 							sprite.initEtat(i, j);
 							sprite.setAttribute("ui.class", se.getCSSClass());
@@ -562,7 +627,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 							j = se.getDestination();
 							edge_id = getEdgebyNodes(i,j);
 
-							sprite = (mySprite) sman.getSprite("s_" + edge_id);
+							sprite = (CustomSprite) sman.getSprite("s_" + edge_id);
 						}
 
 						/*
@@ -734,19 +799,14 @@ public class Window extends JFrame implements Observer, ViewerListener {
 
 	public String getNodeInfoByID(String node_id) {
 		Node n = graph.getNode(node_id);
-		LinkedHashMap<Integer,Prototype> memory = n.getAttribute("memory");
-		String node_info = "";
-		for (Entry<Integer, Prototype> entry : memory.entrySet()) {
-			node_info += entry.getValue().toString() + "\n";
-		}
-		return node_info;
+		return n.getAttribute("memory").toString();
 	}
 
 	public void setDisplay(String s) {
 		display.setText(s);
 	}
 	
-	public void enableWarning() {
+	public void enableWarning(String warning) {
 		// TODO
 		//side_panel.setBackground(Color.RED);
 	}
@@ -759,11 +819,14 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	public void setSpeed(int speed) {
 		this.speed = speed;
 	}
-
-	private class mySpritesFactory extends SpriteFactory {
+	
+	/**
+	 * A factory which allows to use custom Sprite.
+	 */
+	private class CustomSpritesFactory extends SpriteFactory {
 		@Override
 		public Sprite newSprite(String id, SpriteManager manager, Values position) {
-			return new mySprite(id, manager);
+			return new CustomSprite(id, manager);
 		}
 	}
 
@@ -783,6 +846,28 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		System.out.println("Noeud " + id + " relâché");
 	}
 	// --------------------------------
+	
+	/** 
+	 * Read an object from Base64 string.
+	 */
+	private static Object fromBase64String(String s) throws IOException, ClassNotFoundException {
+		byte [] data = Base64.getDecoder().decode(s);
+		ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(data));
+		Object o = ois.readObject();
+		ois.close();
+		return o;
+	}
+	
+	/**
+	 * Write an object to a Base64 string.
+	 */
+	private static String toBase64String(Serializable o) throws IOException {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ObjectOutputStream oos = new ObjectOutputStream(baos);
+		oos.writeObject(o);
+		oos.close();
+		return Base64.getEncoder().encodeToString(baos.toByteArray()); 
+	}
 
 
 	/*

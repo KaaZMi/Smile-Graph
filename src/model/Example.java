@@ -7,6 +7,7 @@ import java.util.List;
  * Represents both an example or counter-example
  */
 public class Example extends Prototype {
+	private static final long serialVersionUID = -4553311091709140833L;
 	private List<String> tags;
 
 	public Example(List<String> atoms, List<String> tags) {

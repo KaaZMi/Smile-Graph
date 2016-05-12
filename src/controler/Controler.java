@@ -14,9 +14,6 @@ public class Controler {
 	}
 
 	public boolean openXML(String path) {
-		// ...
-		// TODO vérifier validité du chemin (est-ce que c'est bien un fichier xml, ...) 
-		// ...
 		return model.openXML(path);
 	}
 
@@ -46,7 +43,10 @@ public class Controler {
 	public void control() {
 		if (view != null) {
 			if (model.getCursor() > model.getEvents().size()) {
-				view.enableWarning();
+				view.enableWarning("Nombre d'événements dépassé.");
+			}
+			else if (model.getCursor() < 0) {
+				view.enableWarning("Retour impossible.");
 			}
 			else {
 				view.disableWarning();

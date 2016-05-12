@@ -283,6 +283,7 @@ public class Model extends Observable {
 	/**
 	 * Compute a list of unique colors in order to assign each one to an example's tag.
 	 * Only the hue varies in order to have the most different possible colors.
+	 * Weak point : chance can make two consecutive examples having a very similar color.
 	 * @param examples
 	 * @return 
 	 */

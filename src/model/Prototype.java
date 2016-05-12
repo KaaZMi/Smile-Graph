@@ -1,9 +1,11 @@
 package model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Prototype {
+public class Prototype implements Serializable {
+	private static final long serialVersionUID = -5408648804674640795L;
 	private List<String> atoms;
 
 	public Prototype(List<String> atoms) {

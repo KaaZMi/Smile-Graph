@@ -1,8 +1,10 @@
 package model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class Hypothesis {
+public class Hypothesis implements Serializable {
+	private static final long serialVersionUID = -1460481349508886149L;
 	private ArrayList<Prototype> prototypes;
 	private boolean consistent;
 	private int id;
