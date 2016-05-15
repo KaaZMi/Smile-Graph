@@ -80,7 +80,6 @@ public class Model extends Observable {
 						edges.put(id, nodes);
 
 						// display of the edge's ID
-						System.out.println("\n************ARC***********");
 						System.out.println(id);
 					}
 				}				
@@ -111,98 +110,90 @@ public class Model extends Observable {
 
 			String css_class = null;
 			boolean etudier_cette_ligne = false;
-			Hypothesis previous_hypothesis = new Hypothesis(new ArrayList<Prototype>(),false);
-			int hypothesis_id = 0;
 
 			// tant qu'une ligne non vide est lisible
-			while (((line = br.readLine()) != null) && !("".equals(line))) {
+			while (((line = br.readLine()) != null)) {
 				// toute ligne sans parenthèse finale n'est pas à traiter
-				// DEV : on ne traite pas les lignes System
-				if ( line.substring(line.length()-1, line.length()).equals(")") ) {
-					// suppression de la parenthèse finale inutile
-					line = line.substring(0, line.length()-1);
-
-					// séparation de la ligne en parties : agents / type ( / contenu )
-					String[] parts = line.split(":");
-
-					// TODO traiter les différents type de messages (couleur à donner, ...)
-					etudier_cette_ligne = true;
-					css_class = "";
-					if (parts[1].contains("Nouveaux Exemples")) {
-						css_class = "new_examples";
-					}
-					else if (parts[1].contains("Hypothese a tester")) {
-						css_class = "hypothesis_test";
-					}
-					else if (parts[1].contains("Hypothese SMA-consistante")) {
-						css_class = "hypothesis_const";
-					}
-					else if (parts[1].contains("Contre Exemples")) {
-						css_class = "counter_examples";
-					}
-					else if (parts[1].contains("Hypothese confirmee")) {
-						css_class = "hypothesis_accept";
-					}
-					else {
-						// aucun des cas précédents n'est vérifié donc la ligne courante ne nous intéressent pas
-						etudier_cette_ligne = false;
-					}
-
-					if (etudier_cette_ligne) {
-						// separate source and destination
-						String[] agents = parts[0].trim().split("->");
-
-						/*
-						 * Create a ScenarioEvent object to handle the content of the messages.
-						 */
-						ScenarioEvent scenario_event = new ScenarioEvent();
-						scenario_event.setCSSClass(css_class);
-						scenario_event.setSource(agents[0].trim());
-						scenario_event.setDestination(agents[1].trim());
-						scenario_event.setType(parts[1].trim());
-						// if the event has a content
-						if (parts.length > 2) {
-							ArrayList<Object> content = buildList(parts[2].trim());
-
-							/*
-							 * The structure is different depending on the type of the message.
-							 * Therefore we treat differently hypotheses and examples.
-							 */
-							if (parts[1].contains("Hypothese")) {
-								Hypothesis hypothesis = parseHypothesis(content);
-
-								/*
-								 * Compare the prototypes of this event to the prototypes of the previous event.
-								 */
-								if (!hypothesis.compareTo(previous_hypothesis)) {
-									hypothesis_id++;
-									previous_hypothesis = hypothesis;
-								}
-
-								hypothesis.setId(hypothesis_id);
-								scenario_event.setHypothesis(hypothesis);
-
-								parsing_index = 0;
-							}
-							else if (parts[1].contains("Exemples")) {
-								Example example = parseExample(content);
-								scenario_event.setExample(example);
-
-								examples.add(example);
-
-								parsing_index = 0;
-							}
-
+				if (!("".equals(line))) {
+					if ( line.substring(line.length()-1, line.length()).equals(")") ) {
+						// suppression de la parenthèse finale inutile
+						line = line.substring(0, line.length()-1);
+						System.out.println(line);
+	
+						// séparation de la ligne en parties : agents / type ( / contenu )
+						String[] parts = line.split(":");
+						
+						etudier_cette_ligne = true;
+						css_class = "";
+						if (parts[1].contains("Nouveaux Exemples")) {
+							css_class = "new_examples";
 						}
-
-						this.events.add(scenario_event); // add the current event to the map
+						else if (parts[1].contains("Hypothese a tester")) {
+							css_class = "hypothesis_test";
+						}
+						else if (parts[1].contains("Hypothese SMA-consistante")) {
+							css_class = "hypothesis_const";
+						}
+						else if (parts[1].contains("Contre Exemples")) {
+							css_class = "counter_examples";
+						}
+						else if (parts[1].contains("Hypothese confirmee")) {
+							css_class = "hypothesis_accept";
+						}
+						else {
+							// aucun des cas précédents n'est vérifié donc la ligne courante ne nous intéressent pas
+							etudier_cette_ligne = false;
+						}
+	
+						if (etudier_cette_ligne) {
+							// separate source and destination
+							String[] agents = parts[0].trim().split("->");
+	
+							/*
+							 * Create a ScenarioEvent object to handle the content of the messages.
+							 */
+							ScenarioEvent scenario_event = new ScenarioEvent();
+							scenario_event.setCSSClass(css_class);
+							scenario_event.setSource(agents[0].trim());
+							scenario_event.setDestination(agents[1].trim());
+							scenario_event.setType(parts[1].trim());
+							// if the event has a content
+							if (parts.length > 2) {
+								/*
+								 * The structure is different depending on the type of the message.
+								 * Therefore we treat differently hypotheses and examples.
+								 */
+								if (parts[1].contains("Hypothese")) {
+									ArrayList<Object> content = buildList(parts[3].trim());
+									Hypothesis hypothesis = parseHypothesis(content);
+									hypothesis.setId(parts[2].trim());
+									System.out.println(hypothesis);
+									scenario_event.setHypothesis(hypothesis);
+	
+									parsing_index = 0;
+								}
+								else if (parts[1].contains("Exemples")) {
+									ArrayList<Object> content = buildList(parts[2].trim());
+									Example example = parseExample(content);
+									scenario_event.setExample(example);
+									System.out.println(example);
+	
+									examples.add(example);
+	
+									parsing_index = 0;
+								}
+	
+							}
+	
+							this.events.add(scenario_event); // add the current event to the map
+						}
+	
+						// DEV : juste pour pas lire tout le fichier
+						loop++;
+						if (loop>500){
+							break;
+						}
 					}
-
-					// DEV : juste pour pas lire tout le fichier
-					//					loop++;
-					//					if (loop>225){
-					//						break;
-					//					}
 				}
 			}
 			
@@ -259,7 +250,7 @@ public class Model extends Observable {
 		ArrayList<Object> level_prototype = (ArrayList<Object>) level_1.get(1); // .get(0) is the class
 
 		ArrayList<Prototype> prototypes = new ArrayList<Prototype>();
-		for (int i = 0 ; i < level_prototype.size() ; i+=3) {
+		for (int i = 1 ; i < level_prototype.size() ; i+=4) {
 			ArrayList<String> level_atoms = (ArrayList<String>) level_prototype.get(i);
 			List<String> atoms = new ArrayList<String>(Arrays.asList(level_atoms.get(0).split(", ")));
 			prototypes.add(new Prototype(atoms));
@@ -271,13 +262,20 @@ public class Model extends Observable {
 	@SuppressWarnings("unchecked")
 	public Example parseExample(ArrayList<Object> content) {
 		ArrayList<Object> level_1 = (ArrayList<Object>) content.get(0);
-
+		
+		String level_id = (String) level_1.get(0);
+		int id = Integer.parseInt(level_id.substring(0, level_id.length()-2));
+		
 		ArrayList<String> level_atoms = (ArrayList<String>) level_1.get(1);
 		List<String> atoms = new ArrayList<String>(Arrays.asList(level_atoms.get(0).split(", ")));
+		
 		ArrayList<String> level_tags = (ArrayList<String>) level_1.get(3);
-		List<String> tags = new ArrayList<String>(Arrays.asList(level_tags.get(0).split(", ")));
+		List<String> tags = new ArrayList<String>();
+		if (level_tags.size() != 0) {
+			tags = new ArrayList<String>(Arrays.asList(level_tags.get(0).split(", ")));
+		}
 
-		return new Example(atoms,tags);
+		return new Example(id,atoms,tags);
 	}
 
 	/**

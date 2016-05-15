@@ -122,7 +122,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 
 	private void initFrame() {
 		setTitle("Smile Graph");
-		setSize(new Dimension(1600,900));
+		setSize(new Dimension(1600,600));
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLocationRelativeTo(null); // window at the center
 		container = new JPanel();
@@ -275,7 +275,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		openLOG.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent arg0){
 				fileChooser = new JFileChooser();
-				fileChooser.setFileFilter(new FileNameExtensionFilter("Text file (*.txt)", "txt"));
+				fileChooser.setFileFilter(new FileNameExtensionFilter("Log file (*.log)", "log"));
 				if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
 					String path = fileChooser.getSelectedFile().getAbsolutePath();
 					if(controler.openLOG(path)) {

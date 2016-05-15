@@ -9,9 +9,11 @@ import java.util.List;
 public class Example extends Prototype {
 	private static final long serialVersionUID = -4553311091709140833L;
 	private List<String> tags;
+	private int id;
 
-	public Example(List<String> atoms, List<String> tags) {
+	public Example(int id, List<String> atoms, List<String> tags) {
 		super(atoms);
+		this.id = id;
 		this.tags = tags;
 	}
 
@@ -23,9 +25,17 @@ public class Example extends Prototype {
 		this.tags = tags;
 	}
 
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
 	@Override
 	public String toString() {
-		return "Example [tags=" + tags + ", atoms=" + super.getAtoms() + "]";
+		return "Example [id=" + id + ", tags=" + tags + ", atoms=" + super.getAtoms() + "]";
 	}
 
 	/**
