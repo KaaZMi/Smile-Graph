@@ -12,6 +12,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Observable;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -109,21 +111,20 @@ public class Model extends Observable {
 			int loop = 0; // DEV
 
 			String css_class = null;
-			boolean etudier_cette_ligne = false;
+			boolean process_line = false;
 
-			// tant qu'une ligne non vide est lisible
+			// as a non-blank line is readable
 			while (((line = br.readLine()) != null)) {
-				// toute ligne sans parenthèse finale n'est pas à traiter
+				// any line without final parenthesis is not to treat
 				if (!("".equals(line))) {
-					if ( line.substring(line.length()-1, line.length()).equals(")") ) {
-						// suppression de la parenthèse finale inutile
+					if (line.contains("->")) {
+						// removing unnecessary final parenthesis
 						line = line.substring(0, line.length()-1);
-						System.out.println(line);
 	
-						// séparation de la ligne en parties : agents / type ( / contenu )
+						// split the line in parts : agent / type / content
 						String[] parts = line.split(":");
 						
-						etudier_cette_ligne = true;
+						process_line = true;
 						css_class = "";
 						if (parts[1].contains("Nouveaux Exemples")) {
 							css_class = "new_examples";
@@ -141,11 +142,11 @@ public class Model extends Observable {
 							css_class = "hypothesis_accept";
 						}
 						else {
-							// aucun des cas précédents n'est vérifié donc la ligne courante ne nous intéressent pas
-							etudier_cette_ligne = false;
+							// none of the above facts is checked therefore the current line doesn't interest us
+							process_line = false;
 						}
 	
-						if (etudier_cette_ligne) {
+						if (process_line) {
 							// separate source and destination
 							String[] agents = parts[0].trim().split("->");
 	
@@ -187,12 +188,63 @@ public class Model extends Observable {
 	
 							this.events.add(scenario_event); // add the current event to the map
 						}
-	
-						// DEV : juste pour pas lire tout le fichier
-						loop++;
-						if (loop>500){
-							break;
+					}
+					
+					else if (line.contains("((Ag")) {
+						// split the line in parts : agent / type / (id /) content
+						String[] parts = line.split(":");
+						
+						/*
+						 * Create a ScenarioEvent object to handle the content of the messages.
+						 */
+						ScenarioEvent scenario_event = new ScenarioEvent();
+						scenario_event.setSource(parts[0].trim().replace("(", "").replace(")", ""));
+						scenario_event.setType(parts[1].trim());
+						
+						if (parts[1].contains("revision protocol")) {
+							ArrayList<Object> content = buildList(parts[2].trim());
+							Hypothesis hypothesis = parseHypothesis(content);
+							
+							Pattern pattern = Pattern.compile("Launch revision protocol for (.*)");
+							Matcher matcher = pattern.matcher(parts[1].trim());
+							if (matcher.find()) {
+								hypothesis.setId(matcher.group(1));
+							}
+							System.out.println("PROTOCOL : " + hypothesis);
+							scenario_event.setHypothesis(hypothesis);
+
+							parsing_index = 0;
 						}
+						else if (parts[1].contains("adopts")) {
+							ArrayList<Object> content = buildList(parts[3].trim());
+							Hypothesis hypothesis = parseHypothesis(content);
+							hypothesis.setId(parts[2].trim());
+							System.out.println("ADOPTS : " + hypothesis);
+							scenario_event.setHypothesis(hypothesis);
+
+							parsing_index = 0;
+						}
+						else if (parts[1].contains("tags ex")) {
+							ArrayList<Object> content = (ArrayList<Object>) buildList(parts[2].trim()).get(0);
+							String level_tags = (String) content.get(0);
+							List<String> tags = new ArrayList<String>(Arrays.asList(level_tags.split(", ")));
+							Example example = new Example(Integer.parseInt(parts[1].replaceAll("\\D+","")), null, tags);
+							System.out.println("TAGGING : " + example);
+							scenario_event.setExample(example);
+							
+							parsing_index = 0;
+						}
+						else if (parts[1].contains("remove from ex")) {
+							// TODO
+						}
+
+						this.events.add(scenario_event); // add the current event to the map
+					}
+					
+					// DEV : juste pour pas lire tout le fichier
+					loop++;
+					if (loop>500){
+						break;
 					}
 				}
 			}

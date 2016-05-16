@@ -35,7 +35,7 @@ public class Example extends Prototype {
 
 	@Override
 	public String toString() {
-		return "Example [id=" + id + ", tags=" + tags + ", atoms=" + super.getAtoms() + "]";
+		return "Example [id=" + id + ", atoms=" + super.getAtoms() + ", tags=" + tags + "]";
 	}
 
 	/**
