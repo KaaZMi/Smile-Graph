@@ -117,7 +117,7 @@ public class Model extends Observable {
 			while (((line = br.readLine()) != null)) {
 				// any line without final parenthesis is not to treat
 				if (!("".equals(line))) {
-					if (line.contains("->")) {
+					if (line.contains("->") && !line.contains("] -> [")) {
 						// removing unnecessary final parenthesis
 						line = line.substring(0, line.length()-1);
 	
@@ -168,7 +168,7 @@ public class Model extends Observable {
 									ArrayList<Object> content = buildList(parts[3].trim());
 									Hypothesis hypothesis = parseHypothesis(content);
 									hypothesis.setId(parts[2].trim());
-									System.out.println(hypothesis);
+									//System.out.println(hypothesis);
 									scenario_event.setHypothesis(hypothesis);
 	
 									parsing_index = 0;
@@ -177,7 +177,7 @@ public class Model extends Observable {
 									ArrayList<Object> content = buildList(parts[2].trim());
 									Example example = parseExample(content);
 									scenario_event.setExample(example);
-									System.out.println(example);
+									//System.out.println(example);
 	
 									examples.add(example);
 	
@@ -203,6 +203,7 @@ public class Model extends Observable {
 						
 						if (parts[1].contains("revision protocol")) {
 							ArrayList<Object> content = buildList(parts[2].trim());
+							parsing_index = 0;
 							Hypothesis hypothesis = parseHypothesis(content);
 							
 							Pattern pattern = Pattern.compile("Launch revision protocol for (.*)");
@@ -212,40 +213,52 @@ public class Model extends Observable {
 							}
 							System.out.println("PROTOCOL : " + hypothesis);
 							scenario_event.setHypothesis(hypothesis);
-
-							parsing_index = 0;
 						}
 						else if (parts[1].contains("adopts")) {
 							ArrayList<Object> content = buildList(parts[3].trim());
+							parsing_index = 0;
 							Hypothesis hypothesis = parseHypothesis(content);
 							hypothesis.setId(parts[2].trim());
 							System.out.println("ADOPTS : " + hypothesis);
 							scenario_event.setHypothesis(hypothesis);
-
-							parsing_index = 0;
 						}
 						else if (parts[1].contains("tags ex")) {
 							ArrayList<Object> content = (ArrayList<Object>) buildList(parts[2].trim()).get(0);
+							parsing_index = 0;
 							String level_tags = (String) content.get(0);
 							List<String> tags = new ArrayList<String>(Arrays.asList(level_tags.split(", ")));
 							Example example = new Example(Integer.parseInt(parts[1].replaceAll("\\D+","")), null, tags);
 							System.out.println("TAGGING : " + example);
 							scenario_event.setExample(example);
-							
-							parsing_index = 0;
 						}
 						else if (parts[1].contains("remove from ex")) {
-							// TODO
+							String[] content = parts[2].split("->");
+							String level_tag_to_remove = content[0].trim();
+							String level_tag_to_add = content[1].trim();
+							
+							List<String> tags_to_replace = new ArrayList<String>();
+							
+							ArrayList<Object> tag_to_remove = (ArrayList<Object>) buildList(level_tag_to_remove).get(0);
+							parsing_index = 0;
+							tags_to_replace.add((String) tag_to_remove.get(0));
+							
+							ArrayList<Object> tag_to_add = (ArrayList<Object>) buildList(level_tag_to_add).get(0);
+							parsing_index = 0;
+							tags_to_replace.add((String) tag_to_add.get(0));
+							
+							Example example = new Example(Integer.parseInt(parts[1].replaceAll("\\D+","")), null, tags_to_replace);
+							System.out.println("REPLACE TAG : " + example);
+							scenario_event.setExample(example);
 						}
 
 						this.events.add(scenario_event); // add the current event to the map
 					}
 					
 					// DEV : juste pour pas lire tout le fichier
-					loop++;
-					if (loop>500){
-						break;
-					}
+//					loop++;
+//					if (loop>500){
+//						break;
+//					}
 				}
 			}
 			
@@ -338,6 +351,7 @@ public class Model extends Observable {
 	 * @return 
 	 */
 	public HashMap<String, String> generateUniqueColors(List<Example> examples) {
+		System.out.println(examples);
 		List<Color> colors = new ArrayList<Color>();
 		HashMap<String,String> tags_colors = new HashMap<String,String>();
 

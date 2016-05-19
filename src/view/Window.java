@@ -36,6 +36,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
@@ -71,6 +72,9 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	private JMenuItem openDGS;
 	private JMenuItem save;
 	private JMenuItem exit;
+	private JMenu tools;
+	private JMenuItem advance_to;
+	private JMenuItem node_details;
 	private JMenu options;
 	private JCheckBoxMenuItem autolayout;
 	private JMenu speed_menu;
@@ -265,6 +269,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 
 						container.add((Component) view_panel, BorderLayout.CENTER);
 						autolayout.setEnabled(true);
+						node_details.setEnabled(true);
 					}
 				}
 				container.revalidate();
@@ -362,6 +367,34 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		file.add(save);
 		file.addSeparator();
 		file.add(exit);
+		
+		tools = new JMenu("Tool");
+		
+		advance_to = new JMenuItem("Advance to...");
+		advance_to.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				String inputValue = JOptionPane.showInputDialog("Please input an example's ID");
+				System.out.printf("The user's name is '%s'.\n", inputValue);
+			}
+		});
+		advance_to.setEnabled(false);
+		
+		node_details = new JMenuItem("Get node's details");
+		node_details.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				String inputValue = JOptionPane.showInputDialog("Please input an node's ID");
+				System.out.printf("The user's name is '%s'.\n", inputValue);
+				JTextArea textArea = new JTextArea(6, 25);
+				textArea.setText(getNodeInfoByID(inputValue));
+				textArea.setEditable(false);
+				JScrollPane scrollPane = new JScrollPane(textArea);
+				JOptionPane.showMessageDialog(null, scrollPane, "Details", JOptionPane.NO_OPTION);
+			}
+		});
+		node_details.setEnabled(false);
+		
+		tools.add(advance_to);
+		tools.add(node_details);
 
 		options = new JMenu("Options");
 
@@ -427,14 +460,13 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				JOptionPane.showMessageDialog(null,
 						"Créateurs : ... & ...\nLicence : Freeware\nCopyright : ...@....com",
 						"Informations", JOptionPane.NO_OPTION);
-				container.removeAll();
-				container.revalidate();
 			}
 		});
 
 		help.add(about);
 
 		menu.add(file);
+		menu.add(tools);
 		menu.add(options);
 		menu.add(help);
 		this.setJMenuBar(menu); // add the menu to the JFrame
@@ -455,8 +487,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		play_pauseButton = new JButton(new ImageIcon("playback_play_icon&16.png"));
 		play_pauseButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (!prevButton.isEnabled() && !stopButton.isEnabled()) {
-					prevButton.setEnabled(true);
+				if (!stopButton.isEnabled()) {
 					stopButton.setEnabled(true);
 				}
 
@@ -473,15 +504,15 @@ public class Window extends JFrame implements Observer, ViewerListener {
 							ScenarioEvent se = model.getEvents().get(cursor);
 							String i = se.getSource();
 							String j = se.getDestination();
-							String edge_id = getEdgebyNodes(i,j);
 							
 							/*
 							 * Process a movement between two nodes.
 							 */
 							if (j != null) {
+								String edge_id = getEdgebyNodes(i,j);
 								if (!currently_moving) {
 									System.out.println(cursor + "/" + se);
-	
+									
 									sprite = (CustomSprite) sman.addSprite("s_" + edge_id);
 									sprite.attachToEdge(edge_id);
 									sprite.initEtat(i, j);
@@ -505,6 +536,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 								 * change or if it's just the updating of a sprite.
 								 */
 								while(loop) {
+									nextButton.setEnabled(false);
 	
 									/* We need to call the pump() method before each use 
 									 * of the graph to copy back events that have already 
@@ -517,20 +549,24 @@ public class Window extends JFrame implements Observer, ViewerListener {
 									 * until it returns false.
 									 */
 									if(!sprite.move()) {
-										updateNode(model.getEvents().get(cursor));							
-	
+										updateNode(model.getEvents().get(cursor));		
 										controler.incrementCursor();
-										sman.removeSprite(sprite.getId());
+										if (sman.hasSprite(sprite.getId())) {
+											sman.removeSprite(sprite.getId());
+										}
 	
 										cursor = model.getCursor();
 										se = model.getEvents().get(cursor);
 										i = se.getSource();
 										j = se.getDestination();
 										
+										System.out.println(cursor + "/" + se);
+										
+										/*
+										 * Process a movement between two nodes.
+										 */
 										if (j != null) {
 											edge_id = getEdgebyNodes(i,j);
-		
-											System.out.println(cursor + "/" + se);
 		
 											sprite = (CustomSprite) sman.addSprite("s_" + edge_id);
 											sprite.attachToEdge(edge_id);
@@ -568,6 +604,23 @@ public class Window extends JFrame implements Observer, ViewerListener {
 												}
 												node_source.setAttribute("memory", memory);
 											}
+											else if (se.getType().contains("remove from ex")) {
+												Node node_source = graph.getNode(se.getSource());
+												ArrayList<Example> memory = node_source.getAttribute("memory");
+												System.out.println("MEMORY : " + memory);
+												for (Example e : memory) {
+													if (e.getId() == se.getExample().getId()) {
+														for (int t = 0; t < e.getTags().size(); t++) {
+															if(e.getTags().get(t).equals(se.getExample().getTags().get(0))) {
+																e.getTags().remove(t);
+																e.getTags().add(se.getExample().getTags().get(1));
+															}
+														}
+													}
+												}
+												node_source.setAttribute("memory", memory);
+												System.out.println("MEMORY : " + memory);
+											}
 										}
 									}
 	
@@ -580,6 +633,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 										 */
 										Thread.currentThread().interrupt();
 										currently_moving = true;
+										nextButton.setEnabled(true);
 										break;
 									}
 								}
@@ -589,11 +643,51 @@ public class Window extends JFrame implements Observer, ViewerListener {
 							 * Process a node's task applied to itself.
 							 */
 							else {
-								// TODO
-								System.out.println(se);
+								if (se.getType().contains("revision protocol")) {
+									Node node_source = graph.getNode(se.getSource());
+									node_source.setAttribute("hypothesis", se.getHypothesis());
+								}
+								else if (se.getType().contains("adopts")) {
+									Node node_source = graph.getNode(se.getSource());
+									node_source.setAttribute("hypothesis", se.getHypothesis());
+								}
+								else if (se.getType().contains("tags ex")) {
+									Node node_source = graph.getNode(se.getSource());
+									ArrayList<Example> memory = node_source.getAttribute("memory");
+									for (Example e : memory) {
+										if (e.getId() == se.getExample().getId()) {
+											for (String tag : se.getExample().getTags()) {
+												e.getTags().add(tag);
+											}
+										}
+									}
+									node_source.setAttribute("memory", memory);
+								}
+								else if (se.getType().contains("remove from ex")) {
+									Node node_source = graph.getNode(se.getSource());
+									ArrayList<Example> memory = node_source.getAttribute("memory");
+									System.out.println("MEMORY : " + memory);
+									for (Example e : memory) {
+										if (e.getId() == se.getExample().getId()) {
+											for (int t = 0; t < e.getTags().size(); t++) {
+												if(e.getTags().get(t).equals(se.getExample().getTags().get(0))) {
+													e.getTags().remove(t);
+													e.getTags().add(se.getExample().getTags().get(1));
+												}
+											}
+										}
+									}
+									node_source.setAttribute("memory", memory);
+									System.out.println("MEMORY : " + memory);
+								}
+								
+								controler.incrementCursor();
+								
+								// TODO : boucler
 							}
 							
 							Thread.currentThread().interrupt();
+							
 						}
 					};
 					scenario_execution.start();
@@ -601,6 +695,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				else {
 					play = false;
 					((AbstractButton) e.getSource()).setIcon(new ImageIcon("playback_play_icon&16.png"));
+					nextButton.setEnabled(true);
 
 					// it interrupts the waiting thread and throws the exception InterruptedException
 					scenario_execution.interrupt();
@@ -611,8 +706,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		nextButton = new JButton(new ImageIcon("playback_next_icon&16.png"));
 		nextButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (!prevButton.isEnabled() && !stopButton.isEnabled()) {
-					prevButton.setEnabled(true);
+				if (!stopButton.isEnabled()) {
 					stopButton.setEnabled(true);
 				}
 
@@ -624,63 +718,122 @@ public class Window extends JFrame implements Observer, ViewerListener {
 						ScenarioEvent se = model.getEvents().get(cursor);
 						String i = se.getSource();
 						String j = se.getDestination();
-						String edge_id = getEdgebyNodes(i,j);
-
-						if (!currently_moving) {
-							System.out.println(cursor + "/" + se);
-
-							sprite = (CustomSprite) sman.addSprite("s_" + edge_id);
-							sprite.attachToEdge(edge_id);
-							sprite.initEtat(i, j);
-							sprite.setAttribute("ui.class", se.getCSSClass());
-							if (se.getType().contains("Hypothese")) {
-								sprite.setAttribute("ui.label", se.getHypothesis().getId());
-							}
-							else if (se.getType().contains("Exemples")) {
-								sprite.setAttribute("ui.style", "fill-color: " + model.getTags_colors().get(se.getExample().getTags().toString()) + ";");
-							}
-						}
-						else {
-							// continue the movement of the sprite.
-							sprite = (CustomSprite) sman.getSprite("s_" + edge_id);
-						}
-
+						
+						System.out.println(cursor + "/" + se);
+						
 						/*
-						 * Each loop processes a movement until it reaches the 
-						 * destination node.
+						 * Process a movement between two nodes.
 						 */
-						while(loop) {
-
-							/* We need to call the pump() method before each use 
-							 * of the graph to copy back events that have already 
-							 * occurred in the viewer thread inside our thread.
-							 */
-							fromViewer.pump();
-
+						if (j != null) {
+							String edge_id = getEdgebyNodes(i,j);
+							if (!currently_moving) {
+								sprite = (CustomSprite) sman.addSprite("s_" + edge_id);
+								sprite.attachToEdge(edge_id);
+								sprite.initEtat(i, j);
+								sprite.setAttribute("ui.class", se.getCSSClass());
+								if (se.getType().contains("Hypothese")) {
+									sprite.setAttribute("ui.label", se.getHypothesis().getId());
+								}
+								else if (se.getType().contains("Exemples")) {
+									sprite.setAttribute("ui.style", "fill-color: " + model.getTags_colors().get(se.getExample().getTags().toString()) + ";");
+								}
+							}
+							else {
+								// continue the movement of the sprite.
+								sprite = (CustomSprite) sman.getSprite("s_" + edge_id);
+							}
+	
 							/*
-							 * We call the function which moves the sprite
-							 * until it returns false.
+							 * Each loop processes a movement until it reaches the 
+							 * destination node.
 							 */
-							if(!sprite.move()) {
-								updateNode(model.getEvents().get(cursor));
-								controler.incrementCursor();
-								sman.removeSprite(sprite.getId());
-								break;
-							}
-
-							try {
-								Thread.sleep(speed);
-							} catch (InterruptedException e2) {
-								/* should never happen because 
-								 * all the buttons are disabled 
-								 * until the end of the action.
+							while(loop) {
+								nextButton.setEnabled(false);
+	
+								/* We need to call the pump() method before each use 
+								 * of the graph to copy back events that have already 
+								 * occurred in the viewer thread inside our thread.
 								 */
-								Thread.currentThread().interrupt();
-								break;
+								fromViewer.pump();
+	
+								/*
+								 * We call the function which moves the sprite
+								 * until it returns false.
+								 */
+								if(!sprite.move()) {
+									updateNode(model.getEvents().get(cursor));
+									controler.incrementCursor();
+									if (sman.hasSprite(sprite.getId())) {
+										sman.removeSprite(sprite.getId());
+									}
+									nextButton.setEnabled(true);
+									break;
+								}
+	
+								try {
+									Thread.sleep(speed);
+								} catch (InterruptedException e2) {
+									/* should never happen because 
+									 * all the buttons are disabled 
+									 * until the end of the action.
+									 */
+									Thread.currentThread().interrupt();
+									break;
+								}
 							}
+							
+							currently_moving = false;
+							Thread.currentThread().interrupt();
+							
 						}
-						currently_moving = false;
-						Thread.currentThread().interrupt();
+						
+						/*
+						 * Process a node's task applied to itself.
+						 */
+						else {
+							if (se.getType().contains("revision protocol")) {
+								Node node_source = graph.getNode(se.getSource());
+								node_source.setAttribute("hypothesis", se.getHypothesis());
+							}
+							else if (se.getType().contains("adopts")) {
+								Node node_source = graph.getNode(se.getSource());
+								node_source.setAttribute("hypothesis", se.getHypothesis());
+							}
+							else if (se.getType().contains("tags ex")) {
+								Node node_source = graph.getNode(se.getSource());
+								ArrayList<Example> memory = node_source.getAttribute("memory");
+								for (Example e : memory) {
+									if (e.getId() == se.getExample().getId()) {
+										for (String tag : se.getExample().getTags()) {
+											e.getTags().add(tag);
+										}
+									}
+								}
+								node_source.setAttribute("memory", memory);
+							}
+							else if (se.getType().contains("remove from ex")) {
+								Node node_source = graph.getNode(se.getSource());
+								ArrayList<Example> memory = node_source.getAttribute("memory");
+								System.out.println("MEMORY : " + memory);
+								for (Example e : memory) {
+									if (e.getId() == se.getExample().getId()) {
+										for (int t = 0; t < e.getTags().size(); t++) {
+											if(e.getTags().get(t).equals(se.getExample().getTags().get(0))) {
+												e.getTags().remove(t);
+												e.getTags().add(se.getExample().getTags().get(1));
+											}
+										}
+									}
+								}
+								node_source.setAttribute("memory", memory);
+								System.out.println("MEMORY : " + memory);
+							}
+							
+							controler.incrementCursor();
+							currently_moving = false;
+							Thread.currentThread().interrupt();
+							
+						}
 					}
 				};
 				scenario_execution.start();
@@ -775,7 +928,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		/*
 		 * If an agent receives new examples, they are added to his memory.
 		 */
-		if (se.getType().contains("Nouveaux Exemples")) {
+		if (se.getType().contains("Exemples")) {
 			Node node_destination = graph.getNode(se.getDestination());
 			ArrayList<Example> memory = node_destination.getAttribute("memory");
 			memory.add(se.getExample());
