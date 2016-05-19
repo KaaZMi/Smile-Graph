@@ -402,11 +402,12 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		autolayout.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e){
 				if (((AbstractButton) e.getSource()).getModel().isSelected())
-					viewer.disableAutoLayout();
-				else
 					viewer.enableAutoLayout();
+				else
+					viewer.disableAutoLayout();
 			}
 		});
+		autolayout.setSelected(true);
 		autolayout.setEnabled(false);
 
 		speed_menu = new JMenu("Execution speed");
@@ -499,195 +500,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 					// scenario execution in a separate thread
 					scenario_execution = new Thread() {
 						public void run() {
-							CustomSprite sprite;
-							int cursor = model.getCursor();
-							ScenarioEvent se = model.getEvents().get(cursor);
-							String i = se.getSource();
-							String j = se.getDestination();
-							
-							/*
-							 * Process a movement between two nodes.
-							 */
-							if (j != null) {
-								String edge_id = getEdgebyNodes(i,j);
-								if (!currently_moving) {
-									System.out.println(cursor + "/" + se);
-									
-									sprite = (CustomSprite) sman.addSprite("s_" + edge_id);
-									sprite.attachToEdge(edge_id);
-									sprite.initEtat(i, j);
-									sprite.setAttribute("ui.class", se.getCSSClass());
-									if (se.getType().contains("Hypothese")) {
-										sprite.setAttribute("ui.label", se.getHypothesis().getId());
-									}
-									else if (se.getType().contains("Exemples")) {
-										sprite.setAttribute("ui.style", "fill-color: " + model.getTags_colors().get(se.getExample().getTags().toString()) + ";");
-									}
-								}
-								else {
-									// continue the movement of the sprite.
-									sprite = (CustomSprite) sman.getSprite("s_" + edge_id);
-									currently_moving = false;
-								}
-	
-								/*
-								 * Each loop processes a movement, not necessarily an event.
-								 * Thus we have to detect at each loop if there is an event 
-								 * change or if it's just the updating of a sprite.
-								 */
-								while(loop) {
-									nextButton.setEnabled(false);
-	
-									/* We need to call the pump() method before each use 
-									 * of the graph to copy back events that have already 
-									 * occurred in the viewer thread inside our thread.
-									 */
-									fromViewer.pump();
-	
-									/*
-									 * We call the function which moves the sprite
-									 * until it returns false.
-									 */
-									if(!sprite.move()) {
-										updateNode(model.getEvents().get(cursor));		
-										controler.incrementCursor();
-										if (sman.hasSprite(sprite.getId())) {
-											sman.removeSprite(sprite.getId());
-										}
-	
-										cursor = model.getCursor();
-										se = model.getEvents().get(cursor);
-										i = se.getSource();
-										j = se.getDestination();
-										
-										System.out.println(cursor + "/" + se);
-										
-										/*
-										 * Process a movement between two nodes.
-										 */
-										if (j != null) {
-											edge_id = getEdgebyNodes(i,j);
-		
-											sprite = (CustomSprite) sman.addSprite("s_" + edge_id);
-											sprite.attachToEdge(edge_id);
-											sprite.initEtat(i, j);
-											sprite.setAttribute("ui.class", se.getCSSClass());
-											if (se.getType().contains("Hypothese")) {
-												sprite.setAttribute("ui.label", se.getHypothesis().getId());
-											}
-											else if (se.getType().contains("Exemples")) {
-												sprite.setAttribute("ui.style", "fill-color: " + model.getTags_colors().get(se.getExample().getTags().toString()) + ";");
-											}
-										}
-										
-										/*
-										 * Process a node's task applied to itself.
-										 */
-										else {
-											if (se.getType().contains("revision protocol")) {
-												Node node_source = graph.getNode(se.getSource());
-												node_source.setAttribute("hypothesis", se.getHypothesis());
-											}
-											else if (se.getType().contains("adopts")) {
-												Node node_source = graph.getNode(se.getSource());
-												node_source.setAttribute("hypothesis", se.getHypothesis());
-											}
-											else if (se.getType().contains("tags ex")) {
-												Node node_source = graph.getNode(se.getSource());
-												ArrayList<Example> memory = node_source.getAttribute("memory");
-												for (Example e : memory) {
-													if (e.getId() == se.getExample().getId()) {
-														for (String tag : se.getExample().getTags()) {
-															e.getTags().add(tag);
-														}
-													}
-												}
-												node_source.setAttribute("memory", memory);
-											}
-											else if (se.getType().contains("remove from ex")) {
-												Node node_source = graph.getNode(se.getSource());
-												ArrayList<Example> memory = node_source.getAttribute("memory");
-												System.out.println("MEMORY : " + memory);
-												for (Example e : memory) {
-													if (e.getId() == se.getExample().getId()) {
-														for (int t = 0; t < e.getTags().size(); t++) {
-															if(e.getTags().get(t).equals(se.getExample().getTags().get(0))) {
-																e.getTags().remove(t);
-																e.getTags().add(se.getExample().getTags().get(1));
-															}
-														}
-													}
-												}
-												node_source.setAttribute("memory", memory);
-												System.out.println("MEMORY : " + memory);
-											}
-										}
-									}
-	
-									try {
-										Thread.sleep(speed);
-									} catch (InterruptedException e) {
-										/* Even if the thread is not waiting on the blocking code at the time of the 
-										 * interruption, it will continue to reach this blocking code. And when it 
-										 * arrives to this blocking code, then it will throw an exception.
-										 */
-										Thread.currentThread().interrupt();
-										currently_moving = true;
-										nextButton.setEnabled(true);
-										break;
-									}
-								}
-							}
-							
-							/*
-							 * Process a node's task applied to itself.
-							 */
-							else {
-								if (se.getType().contains("revision protocol")) {
-									Node node_source = graph.getNode(se.getSource());
-									node_source.setAttribute("hypothesis", se.getHypothesis());
-								}
-								else if (se.getType().contains("adopts")) {
-									Node node_source = graph.getNode(se.getSource());
-									node_source.setAttribute("hypothesis", se.getHypothesis());
-								}
-								else if (se.getType().contains("tags ex")) {
-									Node node_source = graph.getNode(se.getSource());
-									ArrayList<Example> memory = node_source.getAttribute("memory");
-									for (Example e : memory) {
-										if (e.getId() == se.getExample().getId()) {
-											for (String tag : se.getExample().getTags()) {
-												e.getTags().add(tag);
-											}
-										}
-									}
-									node_source.setAttribute("memory", memory);
-								}
-								else if (se.getType().contains("remove from ex")) {
-									Node node_source = graph.getNode(se.getSource());
-									ArrayList<Example> memory = node_source.getAttribute("memory");
-									System.out.println("MEMORY : " + memory);
-									for (Example e : memory) {
-										if (e.getId() == se.getExample().getId()) {
-											for (int t = 0; t < e.getTags().size(); t++) {
-												if(e.getTags().get(t).equals(se.getExample().getTags().get(0))) {
-													e.getTags().remove(t);
-													e.getTags().add(se.getExample().getTags().get(1));
-												}
-											}
-										}
-									}
-									node_source.setAttribute("memory", memory);
-									System.out.println("MEMORY : " + memory);
-								}
-								
-								controler.incrementCursor();
-								
-								// TODO : boucler
-							}
-							
-							Thread.currentThread().interrupt();
-							
+							play();
 						}
 					};
 					scenario_execution.start();
@@ -777,6 +590,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 									 * all the buttons are disabled 
 									 * until the end of the action.
 									 */
+									currently_moving = true;
 									Thread.currentThread().interrupt();
 									break;
 								}
@@ -791,44 +605,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 						 * Process a node's task applied to itself.
 						 */
 						else {
-							if (se.getType().contains("revision protocol")) {
-								Node node_source = graph.getNode(se.getSource());
-								node_source.setAttribute("hypothesis", se.getHypothesis());
-							}
-							else if (se.getType().contains("adopts")) {
-								Node node_source = graph.getNode(se.getSource());
-								node_source.setAttribute("hypothesis", se.getHypothesis());
-							}
-							else if (se.getType().contains("tags ex")) {
-								Node node_source = graph.getNode(se.getSource());
-								ArrayList<Example> memory = node_source.getAttribute("memory");
-								for (Example e : memory) {
-									if (e.getId() == se.getExample().getId()) {
-										for (String tag : se.getExample().getTags()) {
-											e.getTags().add(tag);
-										}
-									}
-								}
-								node_source.setAttribute("memory", memory);
-							}
-							else if (se.getType().contains("remove from ex")) {
-								Node node_source = graph.getNode(se.getSource());
-								ArrayList<Example> memory = node_source.getAttribute("memory");
-								System.out.println("MEMORY : " + memory);
-								for (Example e : memory) {
-									if (e.getId() == se.getExample().getId()) {
-										for (int t = 0; t < e.getTags().size(); t++) {
-											if(e.getTags().get(t).equals(se.getExample().getTags().get(0))) {
-												e.getTags().remove(t);
-												e.getTags().add(se.getExample().getTags().get(1));
-											}
-										}
-									}
-								}
-								node_source.setAttribute("memory", memory);
-								System.out.println("MEMORY : " + memory);
-							}
-							
+							updateNode(se);
 							controler.incrementCursor();
 							currently_moving = false;
 							Thread.currentThread().interrupt();
@@ -900,6 +677,127 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				+ "</html>";
 		setDisplay(html);
 	}
+	
+	/**
+	 * Iterative function that runs the scenario.
+	 */
+	public void play() {
+		CustomSprite sprite;
+		int cursor = model.getCursor();
+		ScenarioEvent se = model.getEvents().get(cursor);
+		String i = se.getSource();
+		String j = se.getDestination();
+		
+		System.out.println(cursor + "/" + se);
+		
+		/*
+		 * Process a movement between two nodes.
+		 */
+		if (j != null) {
+			String edge_id = getEdgebyNodes(i,j);
+			if (!currently_moving) {
+				
+				sprite = (CustomSprite) sman.addSprite("s_" + edge_id);
+				sprite.attachToEdge(edge_id);
+				sprite.initEtat(i, j);
+				sprite.setAttribute("ui.class", se.getCSSClass());
+				if (se.getType().contains("Hypothese")) {
+					sprite.setAttribute("ui.label", se.getHypothesis().getId());
+				}
+				else if (se.getType().contains("Exemples")) {
+					sprite.setAttribute("ui.style", "fill-color: " + model.getTags_colors().get(se.getExample().getTags().toString()) + ";");
+				}
+			}
+			else {
+				// continue the movement of the sprite.
+				sprite = (CustomSprite) sman.getSprite("s_" + edge_id);
+				currently_moving = false;
+			}
+
+			/*
+			 * Each loop processes a movement, not necessarily an event.
+			 * Thus we have to detect at each loop if there is an event 
+			 * change or if it's just the updating of a sprite.
+			 */
+			while(loop) {
+				nextButton.setEnabled(false);
+
+				/* We need to call the pump() method before each use 
+				 * of the graph to copy back events that have already 
+				 * occurred in the viewer thread inside our thread.
+				 */
+				fromViewer.pump();
+
+				/*
+				 * We call the function which moves the sprite
+				 * until it returns false.
+				 */
+				if(!sprite.move()) {
+					updateNode(model.getEvents().get(cursor));		
+					controler.incrementCursor();
+					if (sman.hasSprite(sprite.getId())) {
+						sman.removeSprite(sprite.getId());
+					}
+
+					cursor = model.getCursor();
+					se = model.getEvents().get(cursor);
+					i = se.getSource();
+					j = se.getDestination();
+					
+					System.out.println(cursor + "/" + se);
+					
+					/*
+					 * Process a movement between two nodes.
+					 */
+					if (j != null) {
+						edge_id = getEdgebyNodes(i,j);
+
+						sprite = (CustomSprite) sman.addSprite("s_" + edge_id);
+						sprite.attachToEdge(edge_id);
+						sprite.initEtat(i, j);
+						sprite.setAttribute("ui.class", se.getCSSClass());
+						if (se.getType().contains("Hypothese")) {
+							sprite.setAttribute("ui.label", se.getHypothesis().getId());
+						}
+						else if (se.getType().contains("Exemples")) {
+							sprite.setAttribute("ui.style", "fill-color: " + model.getTags_colors().get(se.getExample().getTags().toString()) + ";");
+						}
+					}
+					
+					/*
+					 * Process a node's task applied to itself.
+					 */
+					else {
+						updateNode(se);
+					}
+				}
+
+				try {
+					Thread.sleep(speed);
+				} catch (InterruptedException e) {
+					/* Even if the thread is not waiting on the blocking code at the time of the 
+					 * interruption, it will continue to reach this blocking code. And when it 
+					 * arrives to this blocking code, then it will throw an exception.
+					 */
+					Thread.currentThread().interrupt();
+					currently_moving = true;
+					nextButton.setEnabled(true);
+					break;
+				}
+			}
+		}
+		
+		/*
+		 * Process a node's task applied to itself.
+		 */
+		else {
+			updateNode(se);
+			controler.incrementCursor();
+			play();
+		}
+		
+		Thread.currentThread().interrupt();
+	}
 
 	private String getEdgebyNodes(String i, String j) {
 		String id = "";
@@ -922,7 +820,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	}
 
 	/**
-	 * Update of a node according to information that reached it.
+	 * Update of a node according to information that reached it or action it applied to itself.
 	 */
 	private void updateNode(ScenarioEvent se) {
 		/*
@@ -943,6 +841,43 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			h.setConsistent(true);
 			node_source.setAttribute("hypothesis", h);
 			System.out.println(node_source.getAttribute("hypothesis").toString());
+		}
+		else if (se.getType().contains("revision protocol")) {
+			Node node_source = graph.getNode(se.getSource());
+			node_source.setAttribute("hypothesis", se.getHypothesis());
+		}
+		else if (se.getType().contains("adopts")) {
+			Node node_source = graph.getNode(se.getSource());
+			node_source.setAttribute("hypothesis", se.getHypothesis());
+		}
+		else if (se.getType().contains("tags ex")) {
+			Node node_source = graph.getNode(se.getSource());
+			ArrayList<Example> memory = node_source.getAttribute("memory");
+			for (Example e : memory) {
+				if (e.getId() == se.getExample().getId()) {
+					for (String tag : se.getExample().getTags()) {
+						e.getTags().add(tag);
+					}
+				}
+			}
+			node_source.setAttribute("memory", memory);
+		}
+		else if (se.getType().contains("remove from ex")) {
+			Node node_source = graph.getNode(se.getSource());
+			ArrayList<Example> memory = node_source.getAttribute("memory");
+			System.out.println("MEMORY : " + memory);
+			for (Example e : memory) {
+				if (e.getId() == se.getExample().getId()) {
+					for (int t = 0; t < e.getTags().size(); t++) {
+						if(e.getTags().get(t).equals(se.getExample().getTags().get(0))) {
+							e.getTags().remove(t);
+							e.getTags().add(se.getExample().getTags().get(1));
+						}
+					}
+				}
+			}
+			node_source.setAttribute("memory", memory);
+			System.out.println("MEMORY : " + memory);
 		}
 
 	}
