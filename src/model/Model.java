@@ -167,7 +167,8 @@ public class Model extends Observable {
 								if (parts[1].contains("Hypothese")) {
 									ArrayList<Object> content = buildList(parts[3].trim());
 									Hypothesis hypothesis = parseHypothesis(content);
-									hypothesis.setId(parts[2].trim());
+									String str = parts[2].trim();
+									hypothesis.setId(str.substring(str.indexOf("(")+1,str.indexOf(")")));
 									//System.out.println(hypothesis);
 									scenario_event.setHypothesis(hypothesis);
 	
@@ -205,12 +206,8 @@ public class Model extends Observable {
 							ArrayList<Object> content = buildList(parts[2].trim());
 							parsing_index = 0;
 							Hypothesis hypothesis = parseHypothesis(content);
-							
-							Pattern pattern = Pattern.compile("Launch revision protocol for (.*)");
-							Matcher matcher = pattern.matcher(parts[1].trim());
-							if (matcher.find()) {
-								hypothesis.setId(matcher.group(1));
-							}
+							String str = parts[1].trim();
+							hypothesis.setId(str.substring(str.indexOf("(")+1,str.indexOf(")")));
 							System.out.println("PROTOCOL : " + hypothesis);
 							scenario_event.setHypothesis(hypothesis);
 						}
@@ -218,7 +215,8 @@ public class Model extends Observable {
 							ArrayList<Object> content = buildList(parts[3].trim());
 							parsing_index = 0;
 							Hypothesis hypothesis = parseHypothesis(content);
-							hypothesis.setId(parts[2].trim());
+							String str = parts[2].trim();
+							hypothesis.setId(str.substring(str.indexOf("(")+1,str.indexOf(")")));
 							System.out.println("ADOPTS : " + hypothesis);
 							scenario_event.setHypothesis(hypothesis);
 						}

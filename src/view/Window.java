@@ -834,7 +834,6 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			Node node_source = graph.getNode(se.getSource());
 			ArrayList<Example> memory = node_source.getAttribute("memory");
 			System.out.println("MEMORY BEFORE TAGGING : " + memory);
-			System.out.println("PRECEDENT SE BEFORE TAGGING : " + model.getEvents().get(model.getCursor()-1));
 			for (Example e : memory) {
 				if (e.getId() == se.getExample().getId()) {
 					for (String tag : se.getExample().getTags()) {
@@ -844,7 +843,6 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			}
 			node_source.setAttribute("memory", memory);
 			System.out.println("MEMORY AFTER TAGGING : " + memory);
-			System.out.println("PRECEDENT SE AFTER TAGGING : " + model.getEvents().get(model.getCursor()-1));
 		}
 		else if (se.getType().contains("remove from ex")) {
 			Node node_source = graph.getNode(se.getSource());
