@@ -38,7 +38,6 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -61,6 +60,7 @@ import controler.Controler;
 import model.Example;
 import model.Hypothesis;
 import model.Model;
+import model.ObjectCloner;
 import model.ScenarioEvent;
 
 @SuppressWarnings("serial")
@@ -88,9 +88,6 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	private JPanel side_panel;
 	private JFileChooser fileChooser ;
 	private JLabel display = new JLabel();
-	private JTextField node_field ;
-	private JButton node_button;
-	private JTextArea node_data;
 
 	private JButton prevButton;
 	private JButton play_pauseButton;
@@ -151,18 +148,6 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				+ "</html>";
 		setDisplay(html);
 
-		node_field = new JTextField();
-		node_button = new JButton("Get info");
-		node_data = new JTextArea();
-		node_data.setEditable(false);
-		node_data.setLineWrap(true);
-		node_button.addActionListener(new ActionListener(){
-			public void actionPerformed(ActionEvent arg0){
-				node_data.setText(getNodeInfoByID(node_field.getText()));
-				container.revalidate();
-			}
-		});
-
 		GridBagConstraints c = null;
 
 		c = new GridBagConstraints();
@@ -171,37 +156,6 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		c.gridwidth = 3;
 		c.fill = GridBagConstraints.HORIZONTAL;
 		side_panel.add(display, c);
-
-		c = new GridBagConstraints();
-		c.gridx = 0;
-		c.gridy = 2;
-		c.gridwidth = 1;
-		c.fill = GridBagConstraints.NONE;
-		c.weightx = 0;
-		side_panel.add(new JLabel("Node : "), c);
-
-		c = new GridBagConstraints();
-		c.gridx = 1;
-		c.gridy = 2;
-		c.gridwidth = 1;
-		c.fill = GridBagConstraints.HORIZONTAL;
-		c.weightx = 1.0;
-		side_panel.add(node_field, c);
-
-		c = new GridBagConstraints();
-		c.gridx = 2;
-		c.gridy = 2;
-		c.gridwidth = 1;
-		c.fill = GridBagConstraints.NONE;
-		c.weightx = 0;
-		side_panel.add(node_button, c);
-
-		c = new GridBagConstraints();
-		c.gridx = 0;
-		c.gridy = 3;
-		c.gridwidth = 3;
-		c.fill = GridBagConstraints.HORIZONTAL;
-		side_panel.add(node_data, c);
 
 		container.add(side_panel, BorderLayout.EAST);
 	}
@@ -375,9 +329,33 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			public void actionPerformed(ActionEvent e){
 				String inputValue = JOptionPane.showInputDialog("Please input an example's ID");
 				System.out.printf("The user's name is '%s'.\n", inputValue);
+				
+				int limit = Integer.parseInt(inputValue);
+				
+				controler.resetCursor();
+				
+				while (limit > 0) {
+					play_pauseButton.setEnabled(false);
+					nextButton.setEnabled(false);
+					
+					int cursor = model.getCursor();
+					ScenarioEvent se = model.getEvents().get(cursor);
+					
+					System.out.println(cursor + "/" + se);
+					
+					updateNode(se);
+					
+					if (se.getType().contains("Nouveaux Exemples")) {
+						limit--;
+					}
+					
+					controler.incrementCursor();
+				}
+				play_pauseButton.setEnabled(true);
+				nextButton.setEnabled(true);
 			}
 		});
-		advance_to.setEnabled(false);
+		//advance_to.setEnabled(false);
 		
 		node_details = new JMenuItem("Get node's details");
 		node_details.addActionListener(new ActionListener(){
@@ -548,8 +526,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 									sprite.setAttribute("ui.label", se.getHypothesis().getId());
 								}
 								else if (se.getType().contains("Exemples")) {
-									sprite.setAttribute("ui.style", "fill-color: " + model.getTags_colors().get(se.getExample().getTags().toString()) + ";");
-								}
+									sprite.setAttribute("ui.style", "fill-color: " + model.getExamples_colors().get(se.getExample().getId()) + ";");								}
 							}
 							else {
 								// continue the movement of the sprite.
@@ -638,8 +615,11 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				}
 
 				// memory of the nodes is reset
-				for (Node node : graph) {
+				for (Node node : graph) {			
 					node.setAttribute("memory", new ArrayList<Example>());
+					if (node.hasAttribute("hypothesis")) {
+						node.removeAttribute("hypothesis");
+					}
 				}
 
 				currently_moving = false;
@@ -695,8 +675,8 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		 */
 		if (j != null) {
 			String edge_id = getEdgebyNodes(i,j);
+			
 			if (!currently_moving) {
-				
 				sprite = (CustomSprite) sman.addSprite("s_" + edge_id);
 				sprite.attachToEdge(edge_id);
 				sprite.initEtat(i, j);
@@ -705,7 +685,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 					sprite.setAttribute("ui.label", se.getHypothesis().getId());
 				}
 				else if (se.getType().contains("Exemples")) {
-					sprite.setAttribute("ui.style", "fill-color: " + model.getTags_colors().get(se.getExample().getTags().toString()) + ";");
+					sprite.setAttribute("ui.style", "fill-color: " + model.getExamples_colors().get(se.getExample().getId()) + ";");
 				}
 			}
 			else {
@@ -760,15 +740,8 @@ public class Window extends JFrame implements Observer, ViewerListener {
 							sprite.setAttribute("ui.label", se.getHypothesis().getId());
 						}
 						else if (se.getType().contains("Exemples")) {
-							sprite.setAttribute("ui.style", "fill-color: " + model.getTags_colors().get(se.getExample().getTags().toString()) + ";");
+							sprite.setAttribute("ui.style", "fill-color: " + model.getExamples_colors().get(se.getExample().getId()) + ";");
 						}
-					}
-					
-					/*
-					 * Process a node's task applied to itself.
-					 */
-					else {
-						updateNode(se);
 					}
 				}
 
@@ -798,7 +771,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		
 		Thread.currentThread().interrupt();
 	}
-
+	
 	private String getEdgebyNodes(String i, String j) {
 		String id = "";
 
@@ -829,10 +802,17 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		if (se.getType().contains("Exemples")) {
 			Node node_destination = graph.getNode(se.getDestination());
 			ArrayList<Example> memory = node_destination.getAttribute("memory");
-			memory.add(se.getExample());
+			System.out.println("EXAMPLE TO ADD : " + se.getExample());
+			Example ex;
+			try {
+				ex = (Example)(ObjectCloner.deepCopy(se.getExample()));
+				memory.add(ex);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			node_destination.setAttribute("memory", memory);
 			node_destination.setAttribute("ui.size", memory.size()+25);
-			System.out.println(memory);
+			System.out.println("MEMORY AFTER NEW EXAMPLE : " + memory);
 		}
 
 		else if (se.getType().contains("Hypothese SMA-consistante")) {
@@ -853,6 +833,8 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		else if (se.getType().contains("tags ex")) {
 			Node node_source = graph.getNode(se.getSource());
 			ArrayList<Example> memory = node_source.getAttribute("memory");
+			System.out.println("MEMORY BEFORE TAGGING : " + memory);
+			System.out.println("PRECEDENT SE BEFORE TAGGING : " + model.getEvents().get(model.getCursor()-1));
 			for (Example e : memory) {
 				if (e.getId() == se.getExample().getId()) {
 					for (String tag : se.getExample().getTags()) {
@@ -861,11 +843,13 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				}
 			}
 			node_source.setAttribute("memory", memory);
+			System.out.println("MEMORY AFTER TAGGING : " + memory);
+			System.out.println("PRECEDENT SE AFTER TAGGING : " + model.getEvents().get(model.getCursor()-1));
 		}
 		else if (se.getType().contains("remove from ex")) {
 			Node node_source = graph.getNode(se.getSource());
 			ArrayList<Example> memory = node_source.getAttribute("memory");
-			System.out.println("MEMORY : " + memory);
+			System.out.println("MEMORY BEFORE REMOVE : " + memory);
 			for (Example e : memory) {
 				if (e.getId() == se.getExample().getId()) {
 					for (int t = 0; t < e.getTags().size(); t++) {
@@ -877,7 +861,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				}
 			}
 			node_source.setAttribute("memory", memory);
-			System.out.println("MEMORY : " + memory);
+			System.out.println("MEMORY AFTER REMOVE : " + memory);
 		}
 
 	}

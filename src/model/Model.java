@@ -36,7 +36,7 @@ public class Model extends Observable {
 	private static int parsing_index = 0; // index to browse the content of a message
 
 	private List<Example> examples = new ArrayList<Example>(); // it will help us to generate colors for each example
-	private HashMap<String,String> tags_colors = new HashMap<String,String>();
+	private HashMap<Integer,String> examples_colors = new HashMap<Integer,String>();
 
 	public boolean openXML(String path) {
 		final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -262,7 +262,7 @@ public class Model extends Observable {
 				}
 			}
 			
-			this.tags_colors = generateUniqueColors(this.examples);
+			this.examples_colors = generateUniqueColors(this.examples);
 			br.close();
 		}
 		catch (final IOException e) {
@@ -350,10 +350,9 @@ public class Model extends Observable {
 	 * @param examples
 	 * @return 
 	 */
-	public HashMap<String, String> generateUniqueColors(List<Example> examples) {
-		System.out.println(examples);
+	public HashMap<Integer, String> generateUniqueColors(List<Example> examples) {
 		List<Color> colors = new ArrayList<Color>();
-		HashMap<String,String> tags_colors = new HashMap<String,String>();
+		HashMap<Integer,String> examples_colors = new HashMap<Integer,String>();
 
 		// fill an array of colors
 		for (int i=0 ; i<examples.size() ; i++) {
@@ -362,13 +361,13 @@ public class Model extends Observable {
 
 		Collections.shuffle(colors); // colors are mixed randomly
 
-		// transform each color in a readable format by GraphStream and assign it to a tag
+		// transform each color in a readable format by GraphStream and assign it to an example's id
 		for (int i=0 ; i<examples.size() ; i++) {
 			String rgb = "rgb(" + colors.get(i).getRed() + "," + colors.get(i).getGreen() + "," + colors.get(i).getBlue() + ")";
-			tags_colors.put(examples.get(i).getTags().toString(),rgb);
+			examples_colors.put(examples.get(i).getId(),rgb);
 		}
 		
-		return tags_colors;
+		return examples_colors;
 	}
 
 	public LinkedHashMap<String, List<String>> getEdges() {
@@ -419,12 +418,12 @@ public class Model extends Observable {
 		this.examples = examples;
 	}
 
-	public HashMap<String, String> getTags_colors() {
-		return tags_colors;
+	public HashMap<Integer, String> getExamples_colors() {
+		return examples_colors;
 	}
 
-	public void setTags_colors(HashMap<String, String> tags_colors) {
-		this.tags_colors = tags_colors;
+	public void setExamples_colors(HashMap<Integer, String> examples_colors) {
+		this.examples_colors = examples_colors;
 	}
 
 }
