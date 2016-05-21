@@ -231,20 +231,12 @@ public class Model extends Observable {
 						}
 						else if (parts[1].contains("remove from ex")) {
 							String[] content = parts[2].split("->");
-							String level_tag_to_remove = content[0].trim();
-							String level_tag_to_add = content[1].trim();
-							
-							List<String> tags_to_replace = new ArrayList<String>();
-							
-							ArrayList<Object> tag_to_remove = (ArrayList<Object>) buildList(level_tag_to_remove).get(0);
+														
+							ArrayList<String> level_new_tags = (ArrayList<String>) buildList(content[1].trim()).get(0);
+							List<String> new_tags = new ArrayList<String>(Arrays.asList(level_new_tags.get(0).split(", ")));
 							parsing_index = 0;
-							tags_to_replace.add((String) tag_to_remove.get(0));
 							
-							ArrayList<Object> tag_to_add = (ArrayList<Object>) buildList(level_tag_to_add).get(0);
-							parsing_index = 0;
-							tags_to_replace.add((String) tag_to_add.get(0));
-							
-							Example example = new Example(Integer.parseInt(parts[1].replaceAll("\\D+","")), null, tags_to_replace);
+							Example example = new Example(Integer.parseInt(parts[1].replaceAll("\\D+","")), null, new_tags);
 							System.out.println("REPLACE TAG : " + example);
 							scenario_event.setExample(example);
 						}

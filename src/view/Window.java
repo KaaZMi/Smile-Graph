@@ -803,9 +803,8 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			Node node_destination = graph.getNode(se.getDestination());
 			ArrayList<Example> memory = node_destination.getAttribute("memory");
 			System.out.println("EXAMPLE TO ADD : " + se.getExample());
-			Example ex;
 			try {
-				ex = (Example)(ObjectCloner.deepCopy(se.getExample()));
+				Example ex = (Example)(ObjectCloner.deepCopy(se.getExample()));
 				memory.add(ex);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -850,12 +849,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			System.out.println("MEMORY BEFORE REMOVE : " + memory);
 			for (Example e : memory) {
 				if (e.getId() == se.getExample().getId()) {
-					for (int t = 0; t < e.getTags().size(); t++) {
-						if(e.getTags().get(t).equals(se.getExample().getTags().get(0))) {
-							e.getTags().remove(t);
-							e.getTags().add(se.getExample().getTags().get(1));
-						}
-					}
+					e.setTags(se.getExample().getTags());
 				}
 			}
 			node_source.setAttribute("memory", memory);
