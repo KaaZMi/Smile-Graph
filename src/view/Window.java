@@ -75,6 +75,10 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	private JMenu tools;
 	private JMenuItem advance_to;
 	private JMenuItem node_details;
+	private JMenu analytical_view;
+	private JMenuItem default_view;
+	private JMenuItem int_ext;
+	private JMenuItem one_against_all;
 	private JMenu options;
 	private JCheckBoxMenuItem autolayout;
 	private JMenu speed_menu;
@@ -328,7 +332,6 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		advance_to.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e){
 				String inputValue = JOptionPane.showInputDialog("Please input an example's ID");
-				System.out.printf("The user's name is '%s'.\n", inputValue);
 				
 				int limit = Integer.parseInt(inputValue);
 				
@@ -361,7 +364,6 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		node_details.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e){
 				String inputValue = JOptionPane.showInputDialog("Please input an node's ID");
-				System.out.printf("The user's name is '%s'.\n", inputValue);
 				JTextArea textArea = new JTextArea(6, 25);
 				textArea.setText(getNodeInfoByID(inputValue));
 				textArea.setEditable(false);
@@ -371,8 +373,91 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		});
 		node_details.setEnabled(false);
 		
+		analytical_view = new JMenu("Analytical view");
+		
+		default_view = new JMenuItem("Default");
+		default_view.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				for (Node node : graph) {
+					if (!node.getId().equals("System")) {
+						node.setAttribute("ui.style", "shape: circle; fill-color: #fad15f;");
+					}
+				}
+			}
+		});
+		
+		int_ext = new JMenuItem("Internal versus External");
+		int_ext.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				for (Node node : graph) {
+					if (!node.getId().equals("System")) {
+						node.setAttribute("ui.style", "shape: pie-chart; fill-color: cyan, orange;");
+						
+						double[] pie_values = new double[2];
+						pie_values[0] = 0.0;
+						pie_values[1] = 0.0;
+						
+						ArrayList<Example> memory = node.getAttribute("memory");
+						for (Example example : memory) {
+							for (String tag : example.getTags()) {
+								if (tag.equals("Ext")) {
+									pie_values[0] += 1.0 / (double) memory.size();
+									break;
+								}
+								else if (tag.equals("Int")) {
+									pie_values[1] += 1.0 / (double) memory.size();
+									break;
+								}
+							}
+						}
+						
+						node.setAttribute("ui.pie-values", pie_values);
+					}
+				}
+			}
+		});
+		
+		one_against_all = new JMenuItem("One against all");
+		one_against_all.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				String inputTag = JOptionPane.showInputDialog("Please input a tag");
+				for (Node node : graph) {
+					if (!node.getId().equals("System")) {
+						node.setAttribute("ui.style", "shape: pie-chart; fill-color: cyan, orange;");
+						
+						double[] pie_values = new double[2];
+						pie_values[0] = 0.0;
+						pie_values[1] = 0.0;
+						
+						ArrayList<Example> memory = node.getAttribute("memory");
+						for (Example example : memory) {
+							boolean tag_found = false;
+							for (String tag : example.getTags()) {
+								if (tag.equals(inputTag)) {
+									pie_values[0] += 1.0 / (double) memory.size();
+									tag_found = true;
+									break;
+								}
+							}
+							if (!tag_found) {
+								pie_values[1] += 1.0 / (double) memory.size();
+							}
+						}
+						
+						node.setAttribute("ui.pie-values", pie_values);
+					}
+				}
+			}
+		});
+		//analytical_view.setEnabled(false);
+		
+		analytical_view.add(default_view);
+		analytical_view.add(int_ext);
+		analytical_view.add(one_against_all);
+		
 		tools.add(advance_to);
 		tools.add(node_details);
+		tools.add(analytical_view);
 
 		options = new JMenu("Options");
 
