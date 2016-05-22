@@ -7,7 +7,8 @@ public class Controler {
 
 	private Window view = null;
 	private Model model;
-
+	
+	private boolean authorization = true; // authorization to continue the scenario execution
 
 	public Controler(Model mod){
 		this.model = mod;
@@ -26,12 +27,12 @@ public class Controler {
 	}
 
 	public void incrementCursor() {
-		model.setCursor((model.getCursor()+1));
+		model.setCursor(model.getCursor()+1);
 		control();
 	}
 
 	public void decrementCursor() {
-		model.setCursor((model.getCursor()-1));
+		model.setCursor(model.getCursor()-1);
 		control();
 	}
 
@@ -42,16 +43,26 @@ public class Controler {
 
 	public void control() {
 		if (view != null) {
-			if (model.getCursor() > model.getEvents().size()) {
-				view.enableWarning("Nombre d'événements dépassé.");
+			if (model.getCursor() >= model.getEvents().size()) {
+				view.enableWarning("No more events.");
+				setAuthorization(false);
 			}
 			else if (model.getCursor() < 0) {
-				view.enableWarning("Retour impossible.");
+				view.enableWarning("Already at the beginning.");
+				setAuthorization(false);
 			}
 			else {
-				view.disableWarning();
+				setAuthorization(true);
 			}
 		}
+	}
+
+	public boolean hasAuthorization() {
+		return authorization;
+	}
+
+	public void setAuthorization(boolean authorization) {
+		this.authorization = authorization;
 	}
 
 }

@@ -20,7 +20,7 @@ public class CustomSprite extends Sprite {
 	 * @param i Source
 	 * @param j Destination
 	 */
-	public void initEtat(String i, String j) {
+	public void initState(String i, String j) {
 		if ( i.contains("System") || j.contains("System") ) {
 			if ( i.contains("System") ) {
 				this.setDirection(true);

@@ -212,7 +212,6 @@ public class Window extends JFrame implements Observer, ViewerListener {
 						viewer = new Viewer(graph, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
 						viewer.enableAutoLayout();
 						view_panel = viewer.addDefaultView(false); // false indicates "no JFrame"
-						// TODO : view_panel.addMouseWheelListener(new MyMouseListener());
 
 						/* IMPORTANT !
 						 * We connect back the viewer to the graph,
@@ -590,7 +589,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				scenario_execution = new Thread() {
 					public void run() {
 						CustomSprite sprite;
-						int cursor = model.getCursor();
+						int cursor = model.getCursor();						
 						ScenarioEvent se = model.getEvents().get(cursor);
 						String i = se.getSource();
 						String j = se.getDestination();
@@ -605,7 +604,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 							if (!currently_moving) {
 								sprite = (CustomSprite) sman.addSprite("s_" + edge_id);
 								sprite.attachToEdge(edge_id);
-								sprite.initEtat(i, j);
+								sprite.initState(i, j);
 								sprite.setAttribute("ui.class", se.getCSSClass());
 								if (se.getType().contains("Hypothese")) {
 									sprite.setAttribute("ui.label", se.getHypothesis().getId());
@@ -684,6 +683,8 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			public void actionPerformed(ActionEvent e) {
 				prevButton.setEnabled(false);
 				stopButton.setEnabled(false);
+				play_pauseButton.setEnabled(true);
+				nextButton.setEnabled(true);
 				play_pauseButton.setIcon(new ImageIcon("playback_play_icon&16.png"));
 				play = false;
 
@@ -699,11 +700,14 @@ public class Window extends JFrame implements Observer, ViewerListener {
 					sman.removeSprite(sprite.getId()); // each sprite is removed
 				}
 
-				// memory of the nodes is reset
-				for (Node node : graph) {			
-					node.setAttribute("memory", new ArrayList<Example>());
+				
+				for (Node node : graph) {
+					node.setAttribute("memory", new ArrayList<Example>()); // memory of the nodes is reset
 					if (node.hasAttribute("hypothesis")) {
 						node.removeAttribute("hypothesis");
+					}
+					if (!node.getId().equals("System")) {
+						node.setAttribute("ui.size", 25); // size is reset
 					}
 				}
 
@@ -764,7 +768,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			if (!currently_moving) {
 				sprite = (CustomSprite) sman.addSprite("s_" + edge_id);
 				sprite.attachToEdge(edge_id);
-				sprite.initEtat(i, j);
+				sprite.initState(i, j);
 				sprite.setAttribute("ui.class", se.getCSSClass());
 				if (se.getType().contains("Hypothese")) {
 					sprite.setAttribute("ui.label", se.getHypothesis().getId());
@@ -800,6 +804,14 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				if(!sprite.move()) {
 					updateNode(model.getEvents().get(cursor));		
 					controler.incrementCursor();
+					
+					// check if we can continue the execution
+					if (!controler.hasAuthorization()) {
+						nextButton.setEnabled(false);
+						play_pauseButton.setEnabled(false);
+						break;
+					}
+					
 					if (sman.hasSprite(sprite.getId())) {
 						sman.removeSprite(sprite.getId());
 					}
@@ -819,7 +831,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 
 						sprite = (CustomSprite) sman.addSprite("s_" + edge_id);
 						sprite.attachToEdge(edge_id);
-						sprite.initEtat(i, j);
+						sprite.initState(i, j);
 						sprite.setAttribute("ui.class", se.getCSSClass());
 						if (se.getType().contains("Hypothese")) {
 							sprite.setAttribute("ui.label", se.getHypothesis().getId());
@@ -953,13 +965,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	}
 	
 	public void enableWarning(String warning) {
-		// TODO
-		//side_panel.setBackground(Color.RED);
-	}
-	
-	public void disableWarning() {
-		// TODO
-		//side_panel.setBackground(Color.WHITE);
+		JOptionPane.showMessageDialog(null, warning, "Warning", JOptionPane.NO_OPTION);
 	}
 
 	public void setSpeed(int speed) {
