@@ -1,7 +1,6 @@
 package view;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -57,11 +56,7 @@ import org.graphstream.ui.view.ViewerListener;
 import org.graphstream.ui.view.ViewerPipe;
 
 import controler.Controler;
-import model.Example;
-import model.Hypothesis;
-import model.Model;
-import model.ObjectCloner;
-import model.ScenarioEvent;
+import model.*;
 
 @SuppressWarnings("serial")
 public class Window extends JFrame implements Observer, ViewerListener {
@@ -124,14 +119,13 @@ public class Window extends JFrame implements Observer, ViewerListener {
 
 		setVisible(true);
 	}
-
+	
 	private void initFrame() {
 		setTitle("Smile Graph");
 		setSize(new Dimension(1600,600));
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLocationRelativeTo(null); // window at the center
 		container = new JPanel();
-		container.setBackground(Color.red); // DEV
 		setContentPane(this.container); // warn our JFrame that the JPanel will constitute its content pane
 		getContentPane().setLayout(new BorderLayout()); // choosing the layout manager
 
@@ -731,7 +725,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		toolbar.setFloatable(false);
 		container.add(toolbar, BorderLayout.NORTH); // add the toolbar to the main panel
 	}
-
+	
 	@Override
 	public void update(Observable obs, Object obj) {
 		String html = "<html>\n"
@@ -869,6 +863,12 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		Thread.currentThread().interrupt();
 	}
 	
+	/**
+	 * Retrieve the ID of an edge based on the ID of its nodes.
+	 * @param i : ID of source
+	 * @param j : ID of destination
+	 * @return String : ID of edge
+	 */
 	private String getEdgebyNodes(String i, String j) {
 		String id = "";
 
@@ -891,6 +891,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 
 	/**
 	 * Update of a node according to information that reached it or action it applied to itself.
+	 * @param se : event responsible for the update
 	 */
 	private void updateNode(ScenarioEvent se) {
 		/*
@@ -954,16 +955,31 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		}
 
 	}
-
+	
+	/**
+	 * Retrieve information of a node thanks to its ID.
+	 * @param node_id : ID of the node
+	 * @return String : information inside the node
+	 */
 	public String getNodeInfoByID(String node_id) {
 		Node n = graph.getNode(node_id);
-		return n.getAttribute("memory").toString();
+		ArrayList<Example> memory  = n.getAttribute("memory");
+		String data = "";
+		data += n.getAttribute("hypothesis");
+		for (Example e : memory) {
+			data += "Example " + e.getId() + " with tags " + e.getTags() + "\n";
+		}
+		return data;
 	}
 
 	public void setDisplay(String s) {
 		display.setText(s);
 	}
 	
+	/**
+	 * Display a particular message in a dialog window.
+	 * @param warning : message to show
+	 */
 	public void enableWarning(String warning) {
 		JOptionPane.showMessageDialog(null, warning, "Warning", JOptionPane.NO_OPTION);
 	}
@@ -1001,6 +1017,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	
 	/** 
 	 * Read an object from Base64 string.
+	 * @return Object : reconstructed object
 	 */
 	private static Object fromBase64String(String s) throws IOException, ClassNotFoundException {
 		byte [] data = Base64.getDecoder().decode(s);
@@ -1012,6 +1029,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	
 	/**
 	 * Write an object to a Base64 string.
+	 * @return String : object deeply converted in Base64
 	 */
 	private static String toBase64String(Serializable o) throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -1026,7 +1044,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	 *  Style
 	 */
 	static final String STYLESHEET = 
-			"graph {"+
+					"graph {"+
 					"	fill-mode: gradient-radial;"+
 					"	fill-color: #FFFFFF,#EEEEEE;"+
 					"}"+

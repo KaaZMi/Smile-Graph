@@ -12,8 +12,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Observable;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -103,12 +101,11 @@ public class Model extends Observable {
 		return true;
 	}
 
+	@SuppressWarnings("unchecked")
 	public boolean openLOG(String path) {
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(path));
 			String line = null;
-
-			int loop = 0; // DEV
 
 			String css_class = null;
 			boolean process_line = false;
@@ -168,7 +165,7 @@ public class Model extends Observable {
 									ArrayList<Object> content = buildList(parts[3].trim());
 									Hypothesis hypothesis = parseHypothesis(content);
 									String str = parts[2].trim();
-									hypothesis.setId(str.substring(str.indexOf("(")+1,str.indexOf(")")));
+									hypothesis.setId(Integer.parseInt(str.substring(str.indexOf("(")+1,str.indexOf(")"))));
 									//System.out.println(hypothesis);
 									scenario_event.setHypothesis(hypothesis);
 	
@@ -207,7 +204,7 @@ public class Model extends Observable {
 							parsing_index = 0;
 							Hypothesis hypothesis = parseHypothesis(content);
 							String str = parts[1].trim();
-							hypothesis.setId(str.substring(str.indexOf("(")+1,str.indexOf(")")));
+							hypothesis.setId(Integer.parseInt(str.substring(str.indexOf("(")+1,str.indexOf(")"))));
 							System.out.println("PROTOCOL : " + hypothesis);
 							scenario_event.setHypothesis(hypothesis);
 						}
@@ -216,7 +213,7 @@ public class Model extends Observable {
 							parsing_index = 0;
 							Hypothesis hypothesis = parseHypothesis(content);
 							String str = parts[2].trim();
-							hypothesis.setId(str.substring(str.indexOf("(")+1,str.indexOf(")")));
+							hypothesis.setId(Integer.parseInt(str.substring(str.indexOf("(")+1,str.indexOf(")"))));
 							System.out.println("ADOPTS : " + hypothesis);
 							scenario_event.setHypothesis(hypothesis);
 						}
@@ -243,12 +240,6 @@ public class Model extends Observable {
 
 						this.events.add(scenario_event); // add the current event to the map
 					}
-					
-					// DEV : juste pour pas lire tout le fichier
-//					loop++;
-//					if (loop>500){
-//						break;
-//					}
 				}
 			}
 			

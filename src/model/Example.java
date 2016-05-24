@@ -1,7 +1,6 @@
 package model;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -43,24 +42,5 @@ public class Example extends Prototype implements Serializable {
 	@Override
 	public String toString() {
 		return "Example [id=" + id + ", atoms=" + super.getAtoms() + ", tags=" + tags + "]";
-	}
-
-	/**
-	 * Compare this example to another according to their tags
-	 * @param tags
-	 * @return true if they're equal, otherwise false if they're not equal
-	 */
-	public boolean compareTo(List<String> tags) {	
-		List<String> tags1 = new ArrayList<String>(this.getTags());
-		List<String> tags2 = new ArrayList<String>(tags);
-
-		if(tags1 != null && tags2 != null && (tags1.size() == tags2.size())) {
-			tags1.removeAll(tags2);
-			if(tags1.isEmpty()) {
-				return true;
-			}
-		}
-
-		return false;
 	}
 }

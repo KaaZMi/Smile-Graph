@@ -7,10 +7,10 @@ public class Hypothesis implements Serializable {
 	private static final long serialVersionUID = -1460481349508886149L;
 	private ArrayList<Prototype> prototypes;
 	private boolean consistent;
-	private String id;
+	private int id;
 
 	public Hypothesis(ArrayList<Prototype> prototypes, boolean consistent) {
-		this.id = "-1";
+		this.id = -1;
 		this.prototypes = prototypes;
 		this.consistent = consistent;
 	}
@@ -31,11 +31,11 @@ public class Hypothesis implements Serializable {
 		this.consistent = consistent;
 	}
 
-	public String getId() {
+	public int getId() {
 		return id;
 	}
 
-	public void setId(String id) {
+	public void setId(int id) {
 		this.id = id;
 	}
 
