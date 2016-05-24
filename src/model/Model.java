@@ -96,8 +96,6 @@ public class Model extends Observable {
 		}
 
 		setGraphLoaded(true);
-		setChanged();
-		notifyObservers();
 		return true;
 	}
 
@@ -251,8 +249,6 @@ public class Model extends Observable {
 		}
 
 		setScenarioLoaded(true);
-		setChanged();
-		notifyObservers();
 		return true;
 	}
 
@@ -365,6 +361,8 @@ public class Model extends Observable {
 
 	public void setCursor(int cursor) {
 		this.cursor = cursor;
+		setChanged();
+		notifyObservers();
 	}
 
 	public boolean isGraphLoaded() {
@@ -373,6 +371,8 @@ public class Model extends Observable {
 
 	public void setGraphLoaded(boolean graphLoaded) {
 		this.graphLoaded = graphLoaded;
+		setChanged();
+		notifyObservers();
 	}
 
 	public boolean isScenarioLoaded() {
@@ -381,6 +381,8 @@ public class Model extends Observable {
 
 	public void setScenarioLoaded(boolean scenarioLoaded) {
 		this.scenarioLoaded = scenarioLoaded;
+		setChanged();
+		notifyObservers();
 	}
 
 	public int getNbAgents() {
@@ -389,6 +391,8 @@ public class Model extends Observable {
 
 	public void setNbAgents(int nbAgents) {
 		this.nbAgents = nbAgents;
+		setChanged();
+		notifyObservers();
 	}
 
 	public List<Example> getExamples() {
@@ -397,6 +401,8 @@ public class Model extends Observable {
 
 	public void setExamples(List<Example> examples) {
 		this.examples = examples;
+		setChanged();
+		notifyObservers();
 	}
 
 	public HashMap<Integer, String> getExamples_colors() {
@@ -405,6 +411,8 @@ public class Model extends Observable {
 
 	public void setExamples_colors(HashMap<Integer, String> examples_colors) {
 		this.examples_colors = examples_colors;
+		setChanged();
+		notifyObservers();
 	}
 
 }
