@@ -330,6 +330,16 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				
 				controler.resetCursor();
 				
+				for (Node node : graph) {
+					node.setAttribute("memory", new ArrayList<Example>()); // memory of the nodes is reset
+					if (node.hasAttribute("hypothesis")) {
+						node.removeAttribute("hypothesis");
+					}
+					if (!node.getId().equals("System")) {
+						node.setAttribute("ui.size", 25); // size is reset
+					}
+				}
+				
 				while (limit > 0) {
 					play_pauseButton.setEnabled(false);
 					nextButton.setEnabled(false);
@@ -934,7 +944,9 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			for (Example e : memory) {
 				if (e.getId() == se.getExample().getId()) {
 					for (String tag : se.getExample().getTags()) {
-						e.getTags().add(tag);
+						if (!e.getTags().contains(tag)) {
+							e.getTags().add(tag);
+						}
 					}
 				}
 			}
