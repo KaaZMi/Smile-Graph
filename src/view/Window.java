@@ -107,6 +107,8 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	private boolean currently_moving = false; // is the scenario running ?
 	private int speed = 10;
 	private boolean loop = true;
+	private String active_view = "default";
+	private String inputTag;
 
 	public Window(Controler controler, Model model){
 		this.controler = controler;
@@ -381,6 +383,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		default_view = new JMenuItem("Default");
 		default_view.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e){
+				active_view = "default";
 				for (Node node : graph) {
 					if (!node.getId().equals("System")) {
 						node.setAttribute("ui.style", "shape: circle; fill-color: #fad15f;");
@@ -392,6 +395,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		int_ext = new JMenuItem("Internal versus External");
 		int_ext.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e){
+				active_view = "int_ext";
 				for (Node node : graph) {
 					if (!node.getId().equals("System")) {
 						node.setAttribute("ui.style", "shape: pie-chart; fill-color: cyan, orange;");
@@ -423,7 +427,12 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		one_against_all = new JMenuItem("One against all");
 		one_against_all.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e){
-				String inputTag = JOptionPane.showInputDialog("Please input a tag");
+				/*
+				 * It's not mandatory to handle a non-existent tag, other 
+				 * tags will be considered as winners.
+				 */
+				inputTag = JOptionPane.showInputDialog("Please input a tag");
+				active_view = "one_against_all";
 				for (Node node : graph) {
 					if (!node.getId().equals("System")) {
 						node.setAttribute("ui.style", "shape: pie-chart; fill-color: cyan, orange;");
@@ -951,6 +960,9 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				}
 			}
 			node_source.setAttribute("memory", memory);
+			if (!active_view.equals("default")) {
+				updateAnalyticalView(node_source);
+			}
 			System.out.println("MEMORY AFTER TAGGING : " + memory);
 		}
 		else if (se.getType().contains("remove from ex")) {
@@ -963,9 +975,66 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				}
 			}
 			node_source.setAttribute("memory", memory);
+			if (!active_view.equals("default")) {
+				updateAnalyticalView(node_source);
+			}
 			System.out.println("MEMORY AFTER REMOVE : " + memory);
 		}
 
+	}
+	
+	/**
+	 * Updates the display of a node according to the current analytical view selected by the user.
+	 * @param node : node whose display must be updated
+	 */
+	private void updateAnalyticalView(Node node) {
+		if (active_view.equals("int_ext")) {
+			node.setAttribute("ui.style", "shape: pie-chart; fill-color: cyan, orange;");
+			
+			double[] pie_values = new double[2];
+			pie_values[0] = 0.0;
+			pie_values[1] = 0.0;
+			
+			ArrayList<Example> memory = node.getAttribute("memory");
+			for (Example example : memory) {
+				for (String tag : example.getTags()) {
+					if (tag.equals("Ext")) {
+						pie_values[0] += 1.0 / (double) memory.size();
+						break;
+					}
+					else if (tag.equals("Int")) {
+						pie_values[1] += 1.0 / (double) memory.size();
+						break;
+					}
+				}
+			}
+			
+			node.setAttribute("ui.pie-values", pie_values);
+		}
+		else if (active_view.equals("one_against_all")) {
+			node.setAttribute("ui.style", "shape: pie-chart; fill-color: cyan, orange;");
+			
+			double[] pie_values = new double[2];
+			pie_values[0] = 0.0;
+			pie_values[1] = 0.0;
+			
+			ArrayList<Example> memory = node.getAttribute("memory");
+			for (Example example : memory) {
+				boolean tag_found = false;
+				for (String tag : example.getTags()) {
+					if (tag.equals(inputTag)) {
+						pie_values[0] += 1.0 / (double) memory.size();
+						tag_found = true;
+						break;
+					}
+				}
+				if (!tag_found) {
+					pie_values[1] += 1.0 / (double) memory.size();
+				}
+			}
+			
+			node.setAttribute("ui.pie-values", pie_values);
+		}
 	}
 	
 	/**
