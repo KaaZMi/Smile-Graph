@@ -339,52 +339,60 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		advance_to = new JMenuItem("Advance to...");
 		advance_to.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e){
-				String inputValue = JOptionPane.showInputDialog("Please input an example's ID");
+				if (model.isGraphLoaded() && model.isScenarioLoaded()) {
+					String inputValue = JOptionPane.showInputDialog("Please input an example's ID");
 
-				int limit = Integer.parseInt(inputValue);
+					int limit = Integer.parseInt(inputValue);
 
-				controler.resetCursor();
-				
-				for(Sprite sprite: sman) {
-					sman.removeSprite(sprite.getId()); // each sprite is removed
-				}
-
-				for (Node node : graph) {
-					node.setAttribute("memory", new ArrayList<Example>()); // memory of the nodes is reset
-					if (node.hasAttribute("hypothesis")) {
-						node.removeAttribute("hypothesis");
-					}
-					if (!node.getId().equals("System")) {
-						node.setAttribute("ui.size", 25); // size is reset
-					}
-				}
-
-				while (limit > 0) {
-					fromViewer.pump();
+					controler.resetCursor();
 					
-					play_pauseButton.setEnabled(false);
-					nextButton.setEnabled(false);
-
-					int cursor = model.getCursor();
-					ScenarioEvent se = model.getEvents().get(cursor);
-
-					// System.out.println(cursor + "/" + se);
-
-					updateNode(se);
-
-					if (se.getType().contains("Nouveaux Exemples")) {
-						limit--;
+					for(Sprite sprite: sman) {
+						sman.removeSprite(sprite.getId()); // each sprite is removed
 					}
 
-					controler.incrementCursor();
+					for (Node node : graph) {
+						node.setAttribute("memory", new ArrayList<Example>()); // memory of the nodes is reset
+						if (node.hasAttribute("hypothesis")) {
+							node.removeAttribute("hypothesis");
+						}
+						if (!node.getId().equals("System")) {
+							node.setAttribute("ui.size", 25); // size is reset
+						}
+					}
+
+					while (limit > 0) {
+						fromViewer.pump();
+						
+						play_pauseButton.setEnabled(false);
+						nextButton.setEnabled(false);
+
+						int cursor = model.getCursor();
+						ScenarioEvent se = model.getEvents().get(cursor);
+
+						// System.out.println(cursor + "/" + se);
+
+						updateNode(se);
+
+						if (se.getType().contains("Nouveaux Exemples")) {
+							limit--;
+						}
+
+						controler.incrementCursor();
+					}
+					
+					currently_moving = false;
+					play_pauseButton.setEnabled(true);
+					nextButton.setEnabled(true);
+					stopButton.setEnabled(true);
 				}
-				
-				currently_moving = false;
-				play_pauseButton.setEnabled(true);
-				nextButton.setEnabled(true);
+				else if (!model.isGraphLoaded()) {
+					enableWarning("Graph not loaded.");
+				}
+				else if (!model.isScenarioLoaded()) {
+					enableWarning("Scenario not loaded.");
+				}
 			}
 		});
-		//advance_to.setEnabled(false);
 
 		node_details = new JMenuItem("Get node's details");
 		node_details.addActionListener(new ActionListener(){
@@ -416,31 +424,36 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		int_ext = new JMenuItem("Internal versus External");
 		int_ext.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e){
-				active_view = "int_ext";
-				for (Node node : graph) {
-					if (!node.getId().equals("System")) {
-						node.setAttribute("ui.style", "shape: pie-chart; fill-color: cyan, orange;");
+				if (model.isGraphLoaded()) {
+					active_view = "int_ext";
+					for (Node node : graph) {
+						if (!node.getId().equals("System")) {
+							node.setAttribute("ui.style", "shape: pie-chart; fill-color: cyan, orange;");
 
-						double[] pie_values = new double[2];
-						pie_values[0] = 0.0;
-						pie_values[1] = 0.0;
+							double[] pie_values = new double[2];
+							pie_values[0] = 0.0;
+							pie_values[1] = 0.0;
 
-						ArrayList<Example> memory = node.getAttribute("memory");
-						for (Example example : memory) {
-							for (String tag : example.getTags()) {
-								if (tag.equals("Ext")) {
-									pie_values[0] += 1.0 / (double) memory.size();
-									break;
-								}
-								else if (tag.equals("Int")) {
-									pie_values[1] += 1.0 / (double) memory.size();
-									break;
+							ArrayList<Example> memory = node.getAttribute("memory");
+							for (Example example : memory) {
+								for (String tag : example.getTags()) {
+									if (tag.equals("Ext")) {
+										pie_values[0] += 1.0 / (double) memory.size();
+										break;
+									}
+									else if (tag.equals("Int")) {
+										pie_values[1] += 1.0 / (double) memory.size();
+										break;
+									}
 								}
 							}
-						}
 
-						node.setAttribute("ui.pie-values", pie_values);
+							node.setAttribute("ui.pie-values", pie_values);
+						}
 					}
+				}
+				else {
+					enableWarning("Graph not loaded.");
 				}
 			}
 		});
@@ -448,37 +461,42 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		one_against_all = new JMenuItem("One against all");
 		one_against_all.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e){
-				/*
-				 * It's not mandatory to handle a non-existent tag, other 
-				 * tags will be considered as winners.
-				 */
-				inputTag = JOptionPane.showInputDialog("Please input a tag");
-				active_view = "one_against_all";
-				for (Node node : graph) {
-					if (!node.getId().equals("System")) {
-						node.setAttribute("ui.style", "shape: pie-chart; fill-color: cyan, orange;");
-
-						double[] pie_values = new double[2];
-						pie_values[0] = 0.0;
-						pie_values[1] = 0.0;
-
-						ArrayList<Example> memory = node.getAttribute("memory");
-						for (Example example : memory) {
-							boolean tag_found = false;
-							for (String tag : example.getTags()) {
-								if (tag.equals(inputTag)) {
-									pie_values[0] += 1.0 / (double) memory.size();
-									tag_found = true;
-									break;
+				if (model.isGraphLoaded()) {
+					/*
+					 * It's not mandatory to handle a non-existent tag, other 
+					 * tags will be considered as winners.
+					 */
+					inputTag = JOptionPane.showInputDialog("Please input a tag");
+					active_view = "one_against_all";
+					for (Node node : graph) {
+						if (!node.getId().equals("System")) {
+							node.setAttribute("ui.style", "shape: pie-chart; fill-color: cyan, orange;");
+	
+							double[] pie_values = new double[2];
+							pie_values[0] = 0.0;
+							pie_values[1] = 0.0;
+	
+							ArrayList<Example> memory = node.getAttribute("memory");
+							for (Example example : memory) {
+								boolean tag_found = false;
+								for (String tag : example.getTags()) {
+									if (tag.equals(inputTag)) {
+										pie_values[0] += 1.0 / (double) memory.size();
+										tag_found = true;
+										break;
+									}
+								}
+								if (!tag_found) {
+									pie_values[1] += 1.0 / (double) memory.size();
 								}
 							}
-							if (!tag_found) {
-								pie_values[1] += 1.0 / (double) memory.size();
-							}
+	
+							node.setAttribute("ui.pie-values", pie_values);
 						}
-
-						node.setAttribute("ui.pie-values", pie_values);
 					}
+				}
+				else {
+					enableWarning("Graph not loaded.");
 				}
 			}
 		});
@@ -717,9 +735,9 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			public void actionPerformed(ActionEvent e) {
 				prevButton.setEnabled(false);
 				stopButton.setEnabled(false);
-				play_pauseButton.setEnabled(true);
 				nextButton.setEnabled(true);
 				play_pauseButton.setIcon(new ImageIcon("playback_play_icon&16.png"));
+				play_pauseButton.setEnabled(true);
 				play = false;
 
 				// it interrupts the waiting thread and throws the exception InterruptedException
