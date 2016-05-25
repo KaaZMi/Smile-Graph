@@ -38,6 +38,7 @@ public class Model extends Observable {
 
 	public boolean openXML(String path) {
 		final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		LinkedHashMap<String, List<String>> tmp_edges = new LinkedHashMap<String, List<String>>();
 
 		try {
 			// create a parser and a document
@@ -77,13 +78,13 @@ public class Model extends Observable {
 						ArrayList<String> nodes = new ArrayList<String>();
 						nodes.add(i);
 						nodes.add(j);
-						edges.put(id, nodes);
-
-						// display of the edge's ID
-						System.out.println(id);
+						tmp_edges.put(id, nodes);
+						
+						// System.out.println(id); // display of the edge's ID
 					}
 				}				
 			}
+			setEdges(tmp_edges);
 		}
 		catch (final ParserConfigurationException e) {
 			e.printStackTrace();
@@ -164,7 +165,7 @@ public class Model extends Observable {
 									Hypothesis hypothesis = parseHypothesis(content);
 									String str = parts[2].trim();
 									hypothesis.setId(Integer.parseInt(str.substring(str.indexOf("(")+1,str.indexOf(")"))));
-									//System.out.println(hypothesis);
+									//// System.out.println(hypothesis);
 									scenario_event.setHypothesis(hypothesis);
 	
 									parsing_index = 0;
@@ -173,7 +174,7 @@ public class Model extends Observable {
 									ArrayList<Object> content = buildList(parts[2].trim());
 									Example example = parseExample(content);
 									scenario_event.setExample(example);
-									//System.out.println(example);
+									//// System.out.println(example);
 	
 									examples.add(example);
 	
@@ -203,7 +204,7 @@ public class Model extends Observable {
 							Hypothesis hypothesis = parseHypothesis(content);
 							String str = parts[1].trim();
 							hypothesis.setId(Integer.parseInt(str.substring(str.indexOf("(")+1,str.indexOf(")"))));
-							System.out.println("PROTOCOL : " + hypothesis);
+							// System.out.println("PROTOCOL : " + hypothesis);
 							scenario_event.setHypothesis(hypothesis);
 						}
 						else if (parts[1].contains("adopts")) {
@@ -212,7 +213,7 @@ public class Model extends Observable {
 							Hypothesis hypothesis = parseHypothesis(content);
 							String str = parts[2].trim();
 							hypothesis.setId(Integer.parseInt(str.substring(str.indexOf("(")+1,str.indexOf(")"))));
-							System.out.println("ADOPTS : " + hypothesis);
+							// System.out.println("ADOPTS : " + hypothesis);
 							scenario_event.setHypothesis(hypothesis);
 						}
 						else if (parts[1].contains("tags ex")) {
@@ -221,7 +222,7 @@ public class Model extends Observable {
 							String level_tags = (String) content.get(0);
 							List<String> tags = new ArrayList<String>(Arrays.asList(level_tags.split(", ")));
 							Example example = new Example(Integer.parseInt(parts[1].replaceAll("\\D+","")), null, tags);
-							System.out.println("TAGGING : " + example);
+							// System.out.println("TAGGING : " + example);
 							scenario_event.setExample(example);
 						}
 						else if (parts[1].contains("remove from ex")) {
@@ -232,7 +233,7 @@ public class Model extends Observable {
 							parsing_index = 0;
 							
 							Example example = new Example(Integer.parseInt(parts[1].replaceAll("\\D+","")), null, new_tags);
-							System.out.println("REPLACE TAG : " + example);
+							// System.out.println("REPLACE TAG : " + example);
 							scenario_event.setExample(example);
 						}
 
@@ -349,6 +350,12 @@ public class Model extends Observable {
 
 	public LinkedHashMap<String, List<String>> getEdges() {
 		return edges;
+	}
+
+	public void setEdges(LinkedHashMap<String, List<String>> edges) {
+		this.edges = edges;
+		setChanged();
+		notifyObservers();
 	}
 
 	public List<ScenarioEvent> getEvents() {

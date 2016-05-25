@@ -149,7 +149,6 @@ public class Window extends JFrame implements Observer, ViewerListener {
 
 	private void initMenuBar() {
 		menu = new JMenuBar();
-
 		file = new JMenu("File");
 
 		openXML = new JMenuItem("Open a graph");
@@ -206,8 +205,15 @@ public class Window extends JFrame implements Observer, ViewerListener {
 						fromViewer.addSink(graph);
 						fromViewer.addViewerListener(Window.this);
 						fromViewer.pump();
-
+						
+						for (Component c : container.getComponents()) {
+							if (c.getClass().getSimpleName().equals("DefaultView")) {
+								container.remove(c);
+							}
+						}
+						
 						container.add((Component) view_panel, BorderLayout.CENTER);
+						
 						autolayout.setEnabled(true);
 						node_details.setEnabled(true);
 					}
@@ -336,7 +342,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 					int cursor = model.getCursor();
 					ScenarioEvent se = model.getEvents().get(cursor);
 
-					System.out.println(cursor + "/" + se);
+					// System.out.println(cursor + "/" + se);
 
 					updateNode(se);
 
@@ -541,7 +547,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		prevButton = new JButton(new ImageIcon("playback_prev_icon&16.png"));
 		prevButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				// TODO : revenir en arrière est plus complexe et peut être fait de différentes façons.
+				// TODO
 			}
 		});
 
@@ -592,7 +598,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 						String i = se.getSource();
 						String j = se.getDestination();
 
-						System.out.println(cursor + "/" + se);
+						// System.out.println(cursor + "/" + se);
 
 						/*
 						 * Process a movement between two nodes.
@@ -742,7 +748,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		String i = se.getSource();
 		String j = se.getDestination();
 
-		System.out.println(cursor + "/" + se);
+		// System.out.println(cursor + "/" + se);
 
 		/*
 		 * Process a movement between two nodes.
@@ -806,7 +812,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 					i = se.getSource();
 					j = se.getDestination();
 
-					System.out.println(cursor + "/" + se);
+					// System.out.println(cursor + "/" + se);
 
 					/*
 					 * Process a movement between two nodes.
@@ -891,7 +897,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		if (se.getType().contains("Exemples")) {
 			Node node_destination = graph.getNode(se.getDestination());
 			ArrayList<Example> memory = node_destination.getAttribute("memory");
-			System.out.println("EXAMPLE TO ADD : " + se.getExample());
+			// System.out.println("EXAMPLE TO ADD : " + se.getExample());
 			try {
 				Example ex = (Example)(ObjectCloner.deepCopy(se.getExample()));
 				memory.add(ex);
@@ -900,7 +906,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			}
 			node_destination.setAttribute("memory", memory);
 			node_destination.setAttribute("ui.size", memory.size()+25);
-			System.out.println("MEMORY AFTER NEW EXAMPLE : " + memory);
+			// System.out.println("MEMORY AFTER NEW EXAMPLE : " + memory);
 		}
 
 		else if (se.getType().contains("Hypothese SMA-consistante")) {
@@ -908,7 +914,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			Hypothesis h = se.getHypothesis();
 			h.setConsistent(true);
 			node_source.setAttribute("hypothesis", h);
-			System.out.println(node_source.getAttribute("hypothesis").toString());
+			// System.out.println(node_source.getAttribute("hypothesis").toString());
 		}
 		else if (se.getType().contains("revision protocol")) {
 			Node node_source = graph.getNode(se.getSource());
@@ -921,7 +927,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 		else if (se.getType().contains("tags ex")) {
 			Node node_source = graph.getNode(se.getSource());
 			ArrayList<Example> memory = node_source.getAttribute("memory");
-			System.out.println("MEMORY BEFORE TAGGING : " + memory);
+			// System.out.println("MEMORY BEFORE TAGGING : " + memory);
 			for (Example e : memory) {
 				if (e.getId() == se.getExample().getId()) {
 					for (String tag : se.getExample().getTags()) {
@@ -935,12 +941,12 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			if (!active_view.equals("default")) {
 				updateAnalyticalView(node_source);
 			}
-			System.out.println("MEMORY AFTER TAGGING : " + memory);
+			// System.out.println("MEMORY AFTER TAGGING : " + memory);
 		}
 		else if (se.getType().contains("remove from ex")) {
 			Node node_source = graph.getNode(se.getSource());
 			ArrayList<Example> memory = node_source.getAttribute("memory");
-			System.out.println("MEMORY BEFORE REMOVE : " + memory);
+			// System.out.println("MEMORY BEFORE REMOVE : " + memory);
 			for (Example e : memory) {
 				if (e.getId() == se.getExample().getId()) {
 					e.setTags(se.getExample().getTags());
@@ -950,7 +956,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			if (!active_view.equals("default")) {
 				updateAnalyticalView(node_source);
 			}
-			System.out.println("MEMORY AFTER REMOVE : " + memory);
+			// System.out.println("MEMORY AFTER REMOVE : " + memory);
 		}
 
 	}
@@ -1073,11 +1079,11 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	}
 
 	public void buttonPushed(String id) {
-		System.out.println("Noeud " + id + " attrapé");
+		// System.out.println("Noeud " + id + " attrapé");
 	}
 
 	public void buttonReleased(String id) {
-		System.out.println("Noeud " + id + " relâché");
+		// System.out.println("Noeud " + id + " relâché");
 	}
 	// --------------------------------
 
