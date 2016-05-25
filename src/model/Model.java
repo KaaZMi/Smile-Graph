@@ -104,10 +104,13 @@ public class Model extends Observable {
 	public boolean openLOG(String path) {
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(path));
-			String line = null;
-
-			String css_class = null;
+			String line;
+			String css_class;
 			boolean process_line = false;
+			List<ScenarioEvent> tmp_events = new ArrayList<ScenarioEvent>();
+			List<Example> tmp_examples = new ArrayList<Example>();
+			
+			setCursor(0);
 
 			// as a non-blank line is readable
 			while (((line = br.readLine()) != null)) {
@@ -176,14 +179,14 @@ public class Model extends Observable {
 									scenario_event.setExample(example);
 									//// System.out.println(example);
 	
-									examples.add(example);
+									tmp_examples.add(example);
 	
 									parsing_index = 0;
 								}
 	
 							}
 	
-							this.events.add(scenario_event); // add the current event to the map
+							tmp_events.add(scenario_event); // add the current event to the map
 						}
 					}
 					
@@ -191,9 +194,7 @@ public class Model extends Observable {
 						// split the line in parts : agent / type / (id /) content
 						String[] parts = line.split(":");
 						
-						/*
-						 * Create a ScenarioEvent object to handle the content of the messages.
-						 */
+						// create a ScenarioEvent object to handle the content of the messages.
 						ScenarioEvent scenario_event = new ScenarioEvent();
 						scenario_event.setSource(parts[0].trim().replace("(", "").replace(")", ""));
 						scenario_event.setType(parts[1].trim());
@@ -237,12 +238,14 @@ public class Model extends Observable {
 							scenario_event.setExample(example);
 						}
 
-						this.events.add(scenario_event); // add the current event to the map
+						tmp_events.add(scenario_event); // add the current event to the map
 					}
 				}
 			}
 			
-			this.examples_colors = generateUniqueColors(this.examples);
+			setEvents(tmp_events);
+			setExamples(tmp_examples);
+			setExamples_colors(generateUniqueColors(getExamples()));
 			br.close();
 		}
 		catch (final IOException e) {
@@ -360,6 +363,12 @@ public class Model extends Observable {
 
 	public List<ScenarioEvent> getEvents() {
 		return events;
+	}
+
+	public void setEvents(List<ScenarioEvent> events) {
+		this.events = events;
+		setChanged();
+		notifyObservers();
 	}
 
 	public int getCursor() {

@@ -270,6 +270,26 @@ public class Window extends JFrame implements Observer, ViewerListener {
 							}
 						}
 					}
+					
+//					viewer = new Viewer(graph, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
+//					viewer.enableAutoLayout();
+//					view_panel = viewer.addDefaultView(false); // false indicates "no JFrame"
+//					
+//					fromViewer = viewer.newViewerPipe();
+//					fromViewer.addSink(graph);
+//					fromViewer.addViewerListener(Window.this);
+//					fromViewer.pump();
+//					
+//					for (Component c : container.getComponents()) {
+//						if (c.getClass().getSimpleName().equals("DefaultView")) {
+//							container.remove(c);
+//						}
+//					}
+//					
+//					container.add((Component) view_panel, BorderLayout.CENTER);
+//					
+//					autolayout.setEnabled(true);
+//					node_details.setEnabled(true);
 				}
 				container.revalidate();
 			}
@@ -324,6 +344,10 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				int limit = Integer.parseInt(inputValue);
 
 				controler.resetCursor();
+				
+				for(Sprite sprite: sman) {
+					sman.removeSprite(sprite.getId()); // each sprite is removed
+				}
 
 				for (Node node : graph) {
 					node.setAttribute("memory", new ArrayList<Example>()); // memory of the nodes is reset
@@ -336,6 +360,8 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				}
 
 				while (limit > 0) {
+					fromViewer.pump();
+					
 					play_pauseButton.setEnabled(false);
 					nextButton.setEnabled(false);
 
@@ -352,6 +378,8 @@ public class Window extends JFrame implements Observer, ViewerListener {
 
 					controler.incrementCursor();
 				}
+				
+				currently_moving = false;
 				play_pauseButton.setEnabled(true);
 				nextButton.setEnabled(true);
 			}
