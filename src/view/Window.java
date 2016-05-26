@@ -590,14 +590,14 @@ public class Window extends JFrame implements Observer, ViewerListener {
 	private void initToolBar() {
 		JToolBar toolbar = new JToolBar();
 
-		prevButton = new JButton(new ImageIcon("playback_prev_icon&16.png"));
+		prevButton = new JButton(new ImageIcon("images/playback_prev_icon&16.png"));
 		prevButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				// TODO
 			}
 		});
 
-		play_pauseButton = new JButton(new ImageIcon("playback_play_icon&16.png"));
+		play_pauseButton = new JButton(new ImageIcon("images/playback_play_icon&16.png"));
 		play_pauseButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (!stopButton.isEnabled()) {
@@ -607,7 +607,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				if (!play) {
 					play = true;
 					// switch between play/pause icon
-					((AbstractButton) e.getSource()).setIcon(new ImageIcon("playback_pause_icon&16.png"));
+					((AbstractButton) e.getSource()).setIcon(new ImageIcon("images/playback_pause_icon&16.png"));
 
 					// scenario execution in a separate thread
 					scenario_execution = new Thread() {
@@ -619,7 +619,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 				}
 				else {
 					play = false;
-					((AbstractButton) e.getSource()).setIcon(new ImageIcon("playback_play_icon&16.png"));
+					((AbstractButton) e.getSource()).setIcon(new ImageIcon("images/playback_play_icon&16.png"));
 					nextButton.setEnabled(true);
 
 					// it interrupts the waiting thread and throws the exception InterruptedException
@@ -628,7 +628,7 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			}
 		});
 
-		nextButton = new JButton(new ImageIcon("playback_next_icon&16.png"));
+		nextButton = new JButton(new ImageIcon("images/playback_next_icon&16.png"));
 		nextButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (!stopButton.isEnabled()) {
@@ -730,13 +730,13 @@ public class Window extends JFrame implements Observer, ViewerListener {
 			}
 		});
 
-		stopButton = new JButton(new ImageIcon("playback_stop_icon&16.png"));
+		stopButton = new JButton(new ImageIcon("images/playback_stop_icon&16.png"));
 		stopButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				prevButton.setEnabled(false);
 				stopButton.setEnabled(false);
 				nextButton.setEnabled(true);
-				play_pauseButton.setIcon(new ImageIcon("playback_play_icon&16.png"));
+				play_pauseButton.setIcon(new ImageIcon("images/playback_play_icon&16.png"));
 				play_pauseButton.setEnabled(true);
 				play = false;
 

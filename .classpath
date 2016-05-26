@@ -2,8 +2,8 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="C:/Users/Mikaël/Desktop/DAC/M1S2/PLDAC/GraphStream/gs-algo-1.3/gs-algo-1.3.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Mikaël/Desktop/DAC/M1S2/PLDAC/GraphStream/gs-core-1.3/gs-core-1.3.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Mikaël/Desktop/DAC/M1S2/PLDAC/GraphStream/gs-ui-1.3/gs-ui-1.3.jar"/>
+	<classpathentry kind="lib" path="gs-core-1.3.jar"/>
+	<classpathentry kind="lib" path="gs-algo-1.3.jar"/>
+	<classpathentry kind="lib" path="gs-ui-1.3.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
